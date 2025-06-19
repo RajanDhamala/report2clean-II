@@ -1,133 +1,73 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import {
-  FaUserCircle, FaEnvelope, FaMapMarkerAlt, FaPhoneAlt,
-  FaSignOutAlt, FaFileAlt, FaUser, FaClock
+  FaSignOutAlt,
+  FaEnvelope,
+  FaUser,
+  FaPhoneAlt,
+  FaMapMarkerAlt,
 } from 'react-icons/fa';
 
+const fetchUserProfile = async () => {
+  const res = await axios.get('http://localhost:8000/user/profile', {
+    withCredentials: true,
+  });
+  return res.data.data;
+};
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
-    const [user,setuser]=useState()
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: fetchUserProfile,
+  });
+
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/login');
+    try {
+      await axios.get('http://localhost:8000/user/logout', {
+        withCredentials: true,
+      });
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout failed:', err.response?.data?.message || err.message);
+    }
   };
 
+  if (isLoading) {
+    return <div className="text-center text-gray-600 text-lg mt-10">Loading profile...</div>;
+  }
+
+  if (isError) {
+    return <div className="text-center text-red-500 text-lg mt-10">Error loading profile.</div>;
+  }
+
+  const user = data;
 
   return (
-    <div style={styles.container}>
-
-
-      {/* Main layout */}
-      <div style={styles.main}>
-        {/* Left section */}
-        <div style={styles.left}>
-          <div style={styles.avatar}>
-            <FaUserCircle size={80} color="#888" />
-          </div>
-          <h2 style={styles.username}>{userData?.fullName}</h2>
-          <p style={styles.email}><FaEnvelope /> {user?.email}</p>
-          <p><FaPhoneAlt /> {userData?.phone || 'Not provided'}</p>
-          <p><FaMapMarkerAlt /> {userData?.city}, {userData?.province}</p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
+      <div className="bg-white shadow-lg rounded-2xl p-8 max-w-md w-full">
+        <h2 className="text-2xl font-semibold text-gray-800 flex items-center mb-4">
+          <FaUser className="mr-2 text-blue-600" /> {user.fullname}
+        </h2>
+        <div className="space-y-3 text-gray-700">
+          <p className="flex items-center"><FaEnvelope className="mr-2 text-gray-500" /> {user.email}</p>
+          <p className="flex items-center"><FaPhoneAlt className="mr-2 text-gray-500" /> {user.phone_no}</p>
+          <p className="flex items-center"><FaMapMarkerAlt className="mr-2 text-gray-500" /> {user.city}, {user.province}</p>
+          <p className="ml-1">Address: {user.address}</p>
         </div>
 
-        {/* Right section */}
-        <div style={styles.right}>
-          <h3 style={styles.sectionTitle}><FaUser /> Profile Overview</h3>
-          <div style={styles.infoRow}><strong>Name:</strong> {userData?.fullName}</div>
-          <div style={styles.infoRow}><strong>Address:</strong> {userData?.address}</div>
-          <div style={styles.infoRow}><strong>Phone:</strong> {userData?.phone || 'Not provided'}</div>
-          <div style={styles.infoRow}><strong>Province:</strong> {userData?.province}</div>
-          <div style={styles.infoRow}><strong>City:</strong> {userData?.city}</div>
-          <div style={styles.infoRow}><FaClock /> Joined on: {new Date(user?.metadata.creationTime).toLocaleDateString()}</div>
-
-          <Link to="/reports" style={styles.reportLink}>
-            <FaFileAlt /> View My Reports
-          </Link>
-          <br /><br />
-          <button onClick={handleLogout} style={styles.logoutBtn}>
-            <FaSignOutAlt style={{ marginRight: '6px' }} />
-            Logout
-          </button>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="mt-6 w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md font-semibold transition duration-200"
+        >
+          <FaSignOutAlt /> Logout
+        </button>
       </div>
     </div>
   );
 };
 
 export default ProfilePage;
-
-const styles = {
-  container: {
-    fontFamily: 'Arial, sans-serif',
-    background: '#f4f6f8',
-    minHeight: '100vh',
-  },
-  main: {
-    display: 'flex',
-    padding: '2rem',
-    gap: '2rem',
-  },
-  left: {
-    flex: '1',
-    background: '#fff',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    textAlign: 'center',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-  },
-  avatar: {
-    marginBottom: '1rem',
-  },
-  username: {
-    marginBottom: '0.5rem',
-  },
-  email: {
-    color: '#555',
-    marginBottom: '1rem',
-  },
-  right: {
-    flex: '2',
-    background: '#fff',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-  },
-  sectionTitle: {
-    marginBottom: '1rem',
-    fontSize: '20px',
-    color: '#004c99',
-  },
-  infoRow: {
-    marginBottom: '0.8rem',
-    fontSize: '16px',
-  },
-  reportLink: {
-    marginTop: '1.5rem',
-    display: 'inline-block',
-    background: '#004c99',
-    color: '#fff',
-    padding: '10px 16px',
-    borderRadius: '6px',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-  },
-  logoutBtn: {
-    background: '#e60000',
-    color: '#fff',
-    padding: '8px 14px',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  loading: {
-    padding: '2rem',
-    textAlign: 'center',
-    fontSize: '18px',
-  },
-};

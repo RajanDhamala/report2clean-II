@@ -1,283 +1,221 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { User, Mail, Phone, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
+import toast from "react-hot-toast"
+import axios from "axios"
 
-const RegisterPage = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    province: "",
-    district: "",
-    city: "",
-    address: "",
-    phone: "",
-  });
-  const [error, setError] = useState("");
-  const [districts, setDistricts] = useState([]);
-  const [cities, setCities] = useState([]);
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Link,useNavigate } from "react-router-dom"
 
-  const provinces = [
-    "Koshi",
-    "Madhesh",
-    "Bagmati",
-    "Gandaki",
-    "Lumbini",
-    "Karnali",
-    "Sudurpashchim"
-  ];
+const registerSchema = z.object({
+  fullname: z
+    .string()
+    .min(2, "Full name must be at least 2 characters")
+    .max(50, "Full name must be less than 50 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phoneNo: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .regex(/^\+?[\d\s-()]+$/, "Please enter a valid phone number"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password must be less than 100 characters"),
+})
 
-  const provinceDistrictCityData = {
-    Koshi: {
-      districts: {
-        Ilam: ["Ilam"],
-        Jhapa: ["Birtamod", "Damak", "Mechinagar", "Belbari", "Sundar Haraincha", "Urlabari", "Ratuwamai", "Pathari Shanischare", "Garuda", "Gauradaha"],
-        Khotang: ["Diktel"],
-        Morang: ["Biratnagar", "Budhiganga", "Mechinagar", "Belbari", "Sundar Haraincha", "Urlabari", "Ratuwamai", "Pathari Shanischare", "Garuda", "Gauradaha"],
-        Okhaldhunga: ["Okhaldhunga"],
-        Panchthar: ["Phidim"],
-        Sankhuwasabha: ["Khandbari"],
-        Solukhumbu: ["Salleri"],
-        Sunsari: ["Itahari", "Dharan", "Inaruwa", "Ramdhuni", "Duhabi"]
-      }
+export default function RegisterPage() {
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const navigate=useNavigate()
+
+  const form = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      fullname: "",
+      email: "",
+      phoneNo: "",
+      password: "",
     },
-    Madhesh: {
-      districts: {
-        Bara: ["Kalaiya", "Nijgadh"],
-        Dhanusha: ["Janakpur", "Sabaila"],
-        Mahottari: ["Jaleshwar", "Bardibas"],
-        Parsa: ["Birgunj"],
-        Rautahat: ["Gaur"],
-        Sarlahi: ["Malangawa"],
-        Siraha: ["Lahan"],
-        Udayapur: ["Gaighat"]
-      }
-    },
-    Bagmati: {
-      districts: {
-        Kathmandu: ["Kathmandu", "Lalitpur", "Bhaktapur", "Kirtipur", "Nagarjun", "Gokarneshwar", "Budhanilkantha", "Tarakeshwar", "Chandragiri", "Tokha", "Madhyapur Thimi", "Suryabinayak", "Godawari"],
-        Bhaktapur: ["Bhaktapur"],
-        Lalitpur: ["Lalitpur", "Godawari"],
-        Makwanpur: ["Hetauda"],
-        Nuwakot: ["Bidur"],
-        Ramechhap: ["Manthali"],
-        Sindhuli: ["Sindhulimadi"],
-        Sindhupalchok: ["Chautara"],
-        Dhading: ["Dhading"],
-        Chitwan: ["Bharatpur", "Ratnanagar", "Khairahani"]
-      }
-    },
-    Gandaki: {
-      districts: {
-        Kaski: ["Pokhara", "Lekhnath"],
-        Gorkha: ["Gorkha"],
-        Lamjung: ["Besisahar"],
-        Manang: ["Chame"],
-        Mustang: ["Jomsom"],
-        Nawalpur: ["Kawasoti"],
-        Parbat: ["Kushma"],
-        Syangja: ["Waling", "Phedi"]
-      }
-    },
-    Lumbini: {
-      districts: {
-        Arghakhanchi: ["Sandhikharka"],
-        Banke: ["Nepalgunj", "Kohalpur"],
-        Bardiya: ["Gulariya", "Thakurdwara"],
-        Dang: ["Ghorahi", "Tulsipur", "Lamahi"],
-        Kapilvastu: ["Bhimdatta", "Shivaraj", "Kapilvastu", "Rajapur", "Krishnanagar", "Maharajganj"],
-        Palpa: ["Tansen"],
-        Pyuthan: ["Pyuthan"],
-        Rupandehi: ["Butwal", "Tilottama", "Siddharthanagar", "Sunawal", "Lumbini Sanskritik", "Devdaha", "Sainamaina", "Bardaghat"]
-      }
-    },
-    Sudurpashchim: {
-      districts: {
-        Achham: ["Mangalsen"],
-        Baitadi: ["Baitadi"],
-        Bajhang: ["Bajhang"],
-        Bajura: ["Martadi"],
-        Doti: ["Doti"],
-        Kailali: ["Dhangadhi", "Godawari (Kailali)", "Gauriganga", "Punarbas", "Tikapur"],
-        Kanchanpur: ["Mahendranagar"],
-        Dadeldhura: ["Dadeldhura"],
-        Darchula: ["Darchula"]
-      }
-    },
-    Karnali: {
-      districts: {
-        Bardiya: ["Gulariya", "Thakurdwara"],
-        Dailekh: ["Dailekh"],
-        Dolpa: ["Dunai"],
-        Humla: ["Simkot"],
-        Jajarkot: ["Khalanga"],
-        Jumla: ["Jumla"],
-        Kalikot: ["Manma"],
-        Mugu: ["Gamgadhi"],
-        Rukum: ["Musikot"],
-        Salyan: ["Salyan"],
-        Surkhet: ["Birendranagar"]
-      }
+  })
+
+  const onSubmit = async (data) => {
+    setIsLoading(true)
+
+    try {
+      const response = await axios.post("http://localhost:8000/user/register", data)
+
+      toast.success(`Registration successful! Welcome, ${data.fullname}`, {
+        duration: 4000,
+        position: "top-right",
+      })
+
+      form.reset()
+      setTimeout(()=>{
+          navigate('/login')
+      },2000)
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Registration failed. Please try again."
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: "top-right",
+      })
+      navi
+    } finally {
+      setIsLoading(false)
     }
-  };
-
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleProvinceChange = (province) => {
-    setFormData((prev) => ({ ...prev, province, district: "", city: "" }));
-    setDistricts(Object.keys(provinceDistrictCityData[province]?.districts || {}));
-    setCities([]);
-  };
-  
-  const handleDistrictChange = (district) => {
-    setFormData((prev) => ({ ...prev, district, city: "" }));
-    setCities([]);
-    const provinceData = provinceDistrictCityData[formData.province];
-    if (provinceData && provinceData.districts[district]) {
-      setCities(provinceData.districts[district]);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const { fullName, email, password, confirmPassword, province, district, city, address, phone } = formData;
-
-    if (!fullName || !email || !password || !confirmPassword || !province || !district || !city || !address || !phone) {
-      setError("Please fill all fields.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    // Dummy registration success simulation:
-    alert(`Registered successfully! Welcome, ${fullName}`);
-    navigate("/profile");
-  };
-
-  const handleSocialLogin = (providerName) => {
-    // Dummy social login simulation
-    alert(`Simulated social login with ${providerName}`);
-    navigate("/profile");
-  };
+  }
 
   return (
-    <>
-      <div className="register-container">
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Register to Report2Clean</h2>
-        <form className="register-form" onSubmit={handleSubmit}>
-          <input type="text" name="fullName" placeholder="Full Name" onChange={handleChange} />
-          <input type="email" name="email" placeholder="Email Address" onChange={handleChange} />
-          <input type="tel" name="phone" placeholder="Phone Number" onChange={handleChange} />
-          <select name="province" value={formData.province} onChange={(e) => handleProvinceChange(e.target.value)}>
-            <option value="">Select Province</option>
-            {provinces.map((province, index) => (
-              <option key={index} value={province}>{province}</option>
-            ))}
-          </select>
-          <select name="district" value={formData.district} onChange={(e) => handleDistrictChange(e.target.value)} disabled={!formData.province}>
-            <option value="">Select District</option>
-            {districts.map((district, index) => (
-              <option key={index} value={district}>{district}</option>
-            ))}
-          </select>
-          <select name="city" value={formData.city} onChange={handleChange} disabled={!formData.district}>
-            <option value="">Select City</option>
-            {cities.map((city, index) => (
-              <option key={index} value={city}>{city}</option>
-            ))}
-          </select>
-          <input type="text" name="address" placeholder="Address" onChange={handleChange} />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} />
-          <input type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
-          <button type="submit">Register</button>
-        </form>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-4">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
+            <p className="text-gray-600">Join Report2Clean today</p>
+          </div>
 
-        <div className="social-login">
-          <p>Or Sign Up Using</p>
-          <button className="google-btn" onClick={() => handleSocialLogin("Google")}>
-            <img src="https://img.icons8.com/color/16/google-logo.png" alt="Google" /> Google
-          </button>
-          <button className="facebook-btn" onClick={() => handleSocialLogin("Facebook")}>
-            <img src="https://img.icons8.com/ios-filled/16/ffffff/facebook--v1.png" alt="Facebook" /> Facebook
-          </button>
+          {/* Form */}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Full Name */}
+              <FormField
+                control={form.control}
+                name="fullname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Full Name</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="Enter your full name"
+                          className="pl-10 py-3 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Email */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Email Address</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="Enter your email"
+                          className="pl-10 py-3 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Phone Number */}
+              <FormField
+                control={form.control}
+                name="phoneNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Phone Number</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input
+                          {...field}
+                          type="tel"
+                          placeholder="Enter your phone number"
+                          className="pl-10 py-3 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Password */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a password"
+                          className="pl-10 pr-12 py-3 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 px-4 rounded-lg font-semibold text-lg hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating Account...
+                  </div>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </form>
+          </Form>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-600">
+              Already have an account?{" "}
+              <Link to='/login'>
+               <button className="text-blue-500 hover:text-blue-600 font-medium transition-colors focus:outline-none cursor-pointer underline">
+                Sign in
+              </button></Link>
+          
+            </p>
+          </div>
         </div>
-
-        {error && <p className="error">{error}</p>}
       </div>
-
-      <style jsx="true">{`
-        .register-container {
-          max-width: 500px;
-          margin: 30px auto;
-          background: #fff;
-          padding: 30px;
-          border-radius: 15px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          font-family: 'Poppins', sans-serif;
-        }
-
-        .register-form input,
-        .register-form select {
-          display: block;
-          width: 100%;
-          padding: 12px;
-          margin: 12px 0;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          font-size: 16px;
-        }
-
-        .register-form button {
-          padding: 12px;
-          width: 100%;
-          background-color: #2c7a7b;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 16px;
-          margin-top: 10px;
-        }
-
-        .register-form button:hover {
-          background-color: #226568;
-        }
-
-        .social-login {
-          text-align: center;
-          margin-top: 20px;
-        }
-
-        .social-login p {
-          margin-bottom: 10px;
-          font-weight: 500;
-        }
-
-        .social-login button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          padding: 10px;
-          width: 100%;
-          margin: 5px 0;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-      `}</style>
-    </>
-  );
-};
-
-export default RegisterPage;
+    </div>
+  )
+}
