@@ -1,135 +1,106 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from "react";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin, User, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
-function ViewReportsPage() {
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(true);
+const fetchReports = async () => {
+  const response = await axios.get("http://localhost:8000/report/seereport", {
+    withCredentials: true,
+  });
+  return response.data.data;
+};
 
-  // Simulate fetching reports without Firebase
-  useEffect(() => {
-    const fetchReports = async () => {
-      setLoading(true);
-      try {
-        // Simulated dummy data
-        const dummyReports = [
-          {
-            id: '1',
-            description: 'Trash dumped near park',
-            location: 'Kathmandu, Nepal',
-            userName: 'John Doe',
-            imageUrl: 'https://via.placeholder.com/300x200?text=Report+1',
-            timestamp: new Date(),
-          },
-          {
-            id: '2',
-            description: 'Overflowing garbage bin',
-            location: 'Lalitpur, Nepal',
-            userName: 'Jane Smith',
-            imageUrl: 'https://via.placeholder.com/300x200?text=Report+2',
-            timestamp: new Date(Date.now() - 86400000),
-          },
-          // Add more dummy reports here if you want
-        ];
-
-        // Simulate network delay
-        await new Promise((res) => setTimeout(res, 1000));
-
-        setReports(dummyReports);
-      } catch (error) {
-        console.error('Error fetching reports:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
-  }, []);
+export default function ViewReportsPage() {
+  const { data: reports, isLoading, error } = useQuery({
+    queryKey: ["reports"],
+    queryFn: fetchReports,
+  });
 
   return (
-    <>
-      <div style={containerStyle}>
-        <h2 style={headingStyle}>📋 Submitted Reports</h2>
-        {loading ? (
-          <p>Loading reports...</p>
-        ) : reports.length === 0 ? (
-          <p>No reports submitted yet.</p>
-        ) : (
-          <div style={gridStyle}>
-            {reports.map((report) => (
-              <div key={report.id} style={cardStyle}>
-                {report.imageUrl && (
-                  <img src={report.imageUrl} alt="report" style={imageStyle} />
-                )}
-                <div style={infoStyle}>
-                  <h3 style={titleStyle}>{report.description}</h3>
-                  <p style={locationStyle}>📍 {report.location || 'Unknown location'}</p>
-                  <p style={metaStyle}>
-                    Submitted by: <strong>{report.userName || 'Anonymous'}</strong>
-                  </p>
-                  <p style={metaStyle}>
-                    Date: {report.timestamp.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold text-center mb-8">📋 Submitted Reports</h2>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="rounded-2xl border shadow p-4 space-y-4">
+              <Skeleton className="h-48 w-full rounded-xl" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-red-500 text-center">Failed to load reports.</p>
+      ) : reports?.length === 0 ? (
+        <p className="text-center text-gray-600">No reports submitted yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {reports.map((report) => (
+            <ReportCard key={report._id} report={report} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
-// 🔧 Styles
-const containerStyle = {
-  maxWidth: '1200px',
-  margin: '0 auto',
-  padding: '40px 20px',
-};
+function ReportCard({ report }) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = report.images || [];
 
-const headingStyle = {
-  fontSize: '28px',
-  marginBottom: '30px',
-  textAlign: 'center',
-};
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-  gap: '20px',
-};
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
 
-const cardStyle = {
-  border: '1px solid #ccc',
-  borderRadius: '10px',
-  overflow: 'hidden',
-  backgroundColor: '#f9f9f9',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-};
+  return (
+    <div className="bg-white rounded-2xl shadow-md border overflow-hidden flex flex-col">
+      {images.length > 0 && (
+        <div className="relative w-full h-48">
+          <img
+            src={images[currentImageIndex]}
+            alt={`Report Image ${currentImageIndex + 1}`}
+            className="w-full h-full object-cover"
+          />
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute top-1/2 left-2 -translate-y-1/2 bg-white bg-opacity-75 rounded-full p-1 shadow"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute top-1/2 right-2 -translate-y-1/2 bg-white bg-opacity-75 rounded-full p-1 shadow"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
-const imageStyle = {
-  width: '100%',
-  height: '200px',
-  objectFit: 'cover',
-};
-
-const infoStyle = {
-  padding: '16px',
-};
-
-const titleStyle = {
-  fontSize: '18px',
-  fontWeight: '600',
-  marginBottom: '10px',
-};
-
-const locationStyle = {
-  color: '#2c7a7b',
-  fontWeight: '500',
-  marginBottom: '8px',
-};
-
-const metaStyle = {
-  fontSize: '14px',
-  color: '#555',
-};
-
-export default ViewReportsPage;
+      <div className="p-4 space-y-2">
+        <h3 className="text-lg font-semibold">{report.description}</h3>
+        <p className="flex items-center text-sm text-teal-700">
+          <MapPin className="w-4 h-4 mr-1" /> {report.location}
+        </p>
+        <p className="flex items-center text-sm text-gray-600">
+          <User className="w-4 h-4 mr-1" />
+          Submitted by: <span className="ml-1 font-medium">{report.reported_by?.fullname}</span>
+        </p>
+        <p className="flex items-center text-sm text-gray-600">
+          <CalendarDays className="w-4 h-4 mr-1" />
+          {new Date(report.createdAt).toLocaleString()}
+        </p>
+      </div>
+    </div>
+  );
+}

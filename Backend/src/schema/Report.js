@@ -27,10 +27,9 @@ const ReportSchema=mongoose.Schema({
             max:180
         }
     },
-    media:[
+    images:[
         {
             type:String,
-            enum:['img','video']
         }
     ]
 }, {

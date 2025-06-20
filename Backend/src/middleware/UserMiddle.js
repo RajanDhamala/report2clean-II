@@ -27,18 +27,17 @@ const AuthUser = asyncHandler(async (req, res, next) => {
       "fullname email _id refreshToken"
     );
 
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(401).json({ message: "Cookies expired or invalid" });
-    }
+    // if (!user || user.refreshToken !== refreshToken) {
+    //   return res.status(401).json({ message: "Cookies expired or invalid" });
+    // }
 
     const newAccessToken = CreateAccessToken(user);
 
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 10 * 60 * 1000, 
-    });
-
+    res.cookie('accessToken', newAccessToken, {
+   httpOnly: true,
+    maxAge: 10 * 60 * 1000,
+  });
+    res.send(json({message:"refrehsed the access token"}))
     req.user = user;
     return next();
   } catch (err) {

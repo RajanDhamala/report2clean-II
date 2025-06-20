@@ -55,7 +55,7 @@ res.cookie('accessToken', newAccesstoken, {
 
 res.cookie('refreshToken', newRefreshtoken, {
   httpOnly: true,
-  maxAge: 10 * 60 * 1000,
+   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 day
 });
 
 res.cookie('currentUser',currentUser,{

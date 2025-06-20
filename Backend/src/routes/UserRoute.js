@@ -3,6 +3,7 @@ import { LoginUser,RegisterUser,LogoutUser,GetUser } from "../controller/UserCon
 import AuthUser from "../middleware/UserMiddle.js";
 
 
+
 const UserRouter=Router()
 
 UserRouter.get('/',(req,res)=>{
@@ -17,5 +18,6 @@ UserRouter.post('/Login',LoginUser)
 UserRouter.get('/logout',AuthUser,LogoutUser)
 
 UserRouter.get('/profile',AuthUser,GetUser)
+
 
 export default UserRouter
