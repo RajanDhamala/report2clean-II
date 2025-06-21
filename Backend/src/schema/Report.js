@@ -1,40 +1,38 @@
 import mongoose from "mongoose";
-const ReportSchema=mongoose.Schema({
-    reported_by:{
-        type:mongoose.Types.ObjectId,
-        ref:'User',
-        required:true
-    },
-    description:{
-        type:String,
-        required:true
-    },
-    location:{
-        type:String,
-        required:true
-    },
-    coordinates:{
-        latitude:{
-            type:Number,
-            required:true,
-            min:-90,
-            max:90
-        },
-        longitude:{
-            type:Number,
-            required:true,
-            min:-180,
-            max:180
-        }
-    },
-    images:[
-        {
-            type:String,
-        }
-    ]
-}, {
-    timestamps: true
-})
-const Report= mongoose.models.Report || mongoose.model('Report', ReportSchema);
 
-export default Report
+const ReportSchema = mongoose.Schema({
+  reported_by: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  address: {
+    type: String,
+    required: true
+  },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      required: true
+    },
+    coordinates: {
+      type: [Number],
+      required: true
+    }
+  },
+  images: [{
+    type: String
+  }]
+}, {
+  timestamps: true
+});
+
+ReportSchema.index({ location: "2dsphere" });
+
+const Report = mongoose.models.Report || mongoose.model('Report', ReportSchema);
+export default Report;

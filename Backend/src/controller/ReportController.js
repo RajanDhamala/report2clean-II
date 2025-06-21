@@ -23,8 +23,11 @@ const CreateReport = asyncHandler(async (req, res) => {
   const newReport = await Report.create({
     reported_by: user._id,
     description,
-    location: location || 'Unknown', 
-    coordinates: { latitude, longitude },
+    address: location || 'Unknown',
+    location: {
+      type: 'Point',
+      coordinates: [longitude, latitude]
+    },
     images: urls,
   });
 
@@ -32,6 +35,7 @@ const CreateReport = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, 'Event report created successfully', newReport));
 });
+
 
 const seeurReorts=asyncHandler(async(req,res)=>{
   const user=req.user;

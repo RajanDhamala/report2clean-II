@@ -2,8 +2,15 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, User, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  MapPin,
+  User,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
+// Fetch all reports from backend
 const fetchReports = async () => {
   const response = await axios.get("http://localhost:8000/report/seereport", {
     withCredentials: true,
@@ -19,7 +26,9 @@ export default function ViewReportsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-center mb-8">📋 Submitted Reports</h2>
+      <h2 className="text-3xl font-bold text-center mb-8">
+        📋 Submitted Reports
+      </h2>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -59,6 +68,14 @@ function ReportCard({ report }) {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
+  const getLocationLabel = () => {
+    if (typeof report.location === "object" && report.location.coordinates) {
+      const [lng, lat] = report.location.coordinates;
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+    return report.address || "Unknown";
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-md border overflow-hidden flex flex-col">
       {images.length > 0 && (
@@ -89,13 +106,20 @@ function ReportCard({ report }) {
 
       <div className="p-4 space-y-2">
         <h3 className="text-lg font-semibold">{report.description}</h3>
+
         <p className="flex items-center text-sm text-teal-700">
-          <MapPin className="w-4 h-4 mr-1" /> {report.location}
+          <MapPin className="w-4 h-4 mr-1" />
+          {getLocationLabel()}
         </p>
+
         <p className="flex items-center text-sm text-gray-600">
           <User className="w-4 h-4 mr-1" />
-          Submitted by: <span className="ml-1 font-medium">{report.reported_by?.fullname}</span>
+          Submitted by:{" "}
+          <span className="ml-1 font-medium">
+            {report.reported_by?.fullname || "Unknown"}
+          </span>
         </p>
+
         <p className="flex items-center text-sm text-gray-600">
           <CalendarDays className="w-4 h-4 mr-1" />
           {new Date(report.createdAt).toLocaleString()}

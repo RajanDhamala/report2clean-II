@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast"
 import { Recycle } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import LocationPicker from '../src/Pages/LocationPicker'
 const queryClient = new QueryClient();
 function App() {
 
@@ -68,6 +69,7 @@ const Loader=()=>{
             <Route path="/reports" element={<LazyReportSectionPage />} />
             <Route path="/register" element={<LazyRegisterPage />} />
             <Route path="/profile" element={<LazyProfilePage />} />
+             <Route path="/location" element={<LocationPicker />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
