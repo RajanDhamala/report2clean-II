@@ -27,8 +27,18 @@ const ReportSchema = mongoose.Schema({
   },
   images: [{
     type: String
-  }]
-}, {
+  }],status:{
+    type:String,
+    enum:['pending','completed','rejected','onProgress'],
+    default:'pending'
+  },urgency:{
+    type:Boolean,
+    default:false
+  },acceptedBy: {
+  type: mongoose.Types.ObjectId,
+  ref: 'User'
+}
+},{
   timestamps: true
 });
 

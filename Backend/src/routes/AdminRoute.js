@@ -1,5 +1,5 @@
 import {Router } from "express";
-import { AdminLogin } from "../controller/AdminController.js";
+import { AdminLogin,UpdateStatus } from "../controller/AdminController.js";
 
 const AdminRouter=Router()
 
@@ -9,6 +9,6 @@ AdminRouter.get('/',(req,res)=>{
 })
 
 AdminRouter.get('/login',AdminLogin)
-
+AdminRouter.get('/update-status/:status/:report_id',UpdateStatus)
 
 export default AdminRouter

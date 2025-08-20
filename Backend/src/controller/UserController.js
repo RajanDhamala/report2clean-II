@@ -4,8 +4,13 @@ import ApiResponse from '../utils/ApiResponse.js'
 import User from '../schema/User.js'
 import bcrypt from "bcrypt";
 import { CreateAccessToken,CreateRefreshToken } from "../utils/Tokens.js";
+import UserConfig from '../schema/UserConfigs.js'
+import Report from '../schema/Report.js'
+import { RegisterMail,VerificationReport } from "../utils/MailConfig.js";
+import Notification from "../schema/Notification.js";
 
 const RegisterUser = asyncHandler(async (req, res) => {
+  console.log("registerning usr")
   const { fullname, email, phoneNo, password } = req.body;
   console.log('hello',req.body)
 
@@ -15,20 +20,22 @@ const RegisterUser = asyncHandler(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
-    const newUser = await User.create({
-      fullname,
-      email,
-      phone_no: phoneNo,
-      password: hashedPassword,
-    });
-
+   const newUser = await User.create({
+  fullname,
+  email,
+  phone_no: phoneNo,
+  password: hashedPassword, 
+});
+  await RegisterMail(newUser.email,newUser.fullname)
     return res.send(new ApiResponse(201, "User created successfully", newUser));
   } catch (err) {
-    if (err.code === 11000 && err.keyPattern.email) {
-      throw new ApiError(400, "User is already registered with this email no");
-    }
-    throw new ApiError(500, "Something went wrong");
+  console.error("Registration error:", err); 
+
+  if (err.code === 11000 && err.keyPattern?.email) {
+    throw new ApiError(400, "User is already registered with this email no");
   }
+  throw new ApiError(500, "Something went wrong");
+}
 });
 
 const LoginUser=asyncHandler(async(req,res)=>{
@@ -59,7 +66,6 @@ res.cookie('refreshToken', newRefreshtoken, {
 });
 
 res.cookie('currentUser',currentUser,{
-   httpOnly: true,
 })
 return res.send(new ApiResponse(200,'User logged in succesfully',null))
 })
@@ -92,12 +98,224 @@ const GetUser=asyncHandler(async(req,res)=>{
     if(!user){
       throw new ApiError(400,'unauthorized access denied')
     }
-    const existingUser=await User.findOne({email:user.email})
+    console.log(req.user._id)
+    const existingUser=await User.findOne({_id:user._id}).select("_id email phone_no fullname isAuthencated")
     if(!existingUser)throw new ApiError(400,"user doesn't exist")
       return res.send(new ApiResponse(200,'fetched user profile',existingUser))
 })
 
+const UserAuthencation = asyncHandler(async (req, res) => {
+  if (!req.user) throw new ApiError(400, 'Unauthorized access');
+
+  const { idImage, selfieImage } = req.files;
+  const { location } = req.body;
+
+  if (!idImage || !selfieImage || !location) {
+    return res.status(401).send(new ApiResponse(401, 'Please fill all form fields correctly'));
+  }
+
+  console.log('Received location:', location);
+
+  let latitude, longitude;
+  try {
+    if (typeof location === 'string') {
+      if (location.startsWith('[') && location.endsWith(']')) {
+        const parsed = JSON.parse(location);
+        [latitude, longitude] = parsed;
+      } 
+    } else if (Array.isArray(location)) {
+      [latitude, longitude] = location;
+    } else {
+      throw new Error('Invalid location format');
+    }
+  } catch (err) {
+    console.error('Location parsing error:', err.message);
+    throw new ApiError(400, 'Invalid coordinates format. Use "lat,lng" or [lat,lng]');
+  }
+
+  if (
+    isNaN(latitude) ||
+    isNaN(longitude) ||
+    Math.abs(latitude) > 90 ||
+    Math.abs(longitude) > 180
+  ) {
+    throw new ApiError(400, 'Invalid coordinates format or out of bounds');
+  }
+  console.log('Parsed coordinates:', { latitude, longitude });
+
+  const existingUser = await User.findOne({ _id: req.user._id });
+  if (!existingUser) throw new ApiError(400, 'User does not exist');
+
+  existingUser.location = {
+    type: 'Point',
+    coordinates: [longitude, latitude],
+  };
+  existingUser.gov_id = idImage.path;
+  existingUser.profilePic = selfieImage.path;
+  // existingUser.isAuthencated = true;
+
+  const savePromise = existingUser.save();
+const mailPromise = VerificationReport(req.user.email, req.user.name);
+await Promise.all([savePromise, mailPromise]);
+
+  res.send(new ApiResponse(201, 'User authenticated successfully', existingUser));
+});
+
+
+const ChangePassword = asyncHandler(async (req, res) => {
+  const { oldPasswd, newPasswd } = req.body;
+
+  const userss = await User.findOne({ _id: req.user._id }).select("password");
+  const isMatch = await bcrypt.compare(oldPasswd, userss.password);
+
+  console.log("Password match:", isMatch);
+
+  if (!isMatch) throw new ApiError(400, "Invalid credentials");
+
+  const hashedPassword = await bcrypt.hash(newPasswd, 10);
+  userss.password = hashedPassword;
+  await userss.save();
+
+  return res.status(200).json({ message: "Password has been changed successfully" });
+});
+
+
+const updateProfile = asyncHandler(async (req, res) => {
+  const { newname, newPhone, newEmail } = req.body;
+
+  const existingUser = await User.findById(req.user._id);
+  if (!existingUser) throw new ApiError(400, 'User does not exist');
+
+  if (newname !== undefined && newname.trim() !== '') {
+    existingUser.fullname = newname;
+  }
+  if (newPhone !== undefined && newPhone !== '') {
+    existingUser.phone_no = newPhone;
+  }
+  if (newEmail !== undefined && newEmail.trim() !== '') {
+    existingUser.email = newEmail;
+  }
+  await existingUser.save();
+  res.status(200).send(new ApiResponse(200, 'User profile updated successfully'));
+});
+
+
+const UpdateNotifcation=asyncHandler(async(req,res)=>{
+    const {nearbyAlerts,emergencyNoti,emailNotification,pushNotifications}=req.body
+    const existingUser=await UserConfig.findOne({ownedby:req.user._id})
+
+    if(!existingUser)throw new ApiError(400,'user donot exist in db')
+      existingUser.emailNotification=emailNotification;
+      existingUser.nearbyAlerts=nearbyAlerts
+      existingUser.pushNotifications=pushNotifications
+      existingUser.emergencyNoti=emergencyNoti
+      await existingUser.save()
+return res.send(new ApiResponse(201,'updated the notification'))
+})
+
+
+const GetNotificationConfig = asyncHandler(async (req, res) => {
+  if (!req.user) throw new ApiError(401, 'Unauthorized');
+
+  let config = await UserConfig.findOne({ ownedby: req.user._id });
+  if (!config) {
+    config = await UserConfig.create({
+      ownedby: req.user._id,
+      emailNotification: false,
+      nearbyAlerts: true,
+      pushNotifications: true,
+      emergencyNoti: false
+    });
+  }
+  res.status(200).send(new ApiResponse(200, "Notification config fetched", config));
+});
+
+
+const GetReportsStatus = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+console.log(req.user._id)
+  if (!userId) throw new ApiError(401, 'Unauthorized access');
+
+  const userReports = await Report.find({ reported_by: userId })
+    .select('reported_by _id description address status urgency createdAt')
+    .populate({ path: 'reported_by', select: 'fullname' });
+
+  if (userReports.length === 0) {
+    throw new ApiError(404, 'You have no reports to view');
+  }
+
+  return res.status(200).send(
+    new ApiResponse(200, 'Fetched user reports successfully', userReports)
+  );
+});
+
+
+const GetNotifications=asyncHandler(async(req,res)=>{
+const user=req.user._id;
+if(!user)throw new ApiError(401,'please fill the cookies also')
+const notification=await Notification.findOne({user_id:req.user._id}).select('notifications _id');
+if(!notification)throw new ApiError(404,'the user has no notifications')
+return res.send(new ApiResponse(200,'fetched the notifications',notification))
+}
+)
+
+const SetNotificationsRead=asyncHandler(async(req,res)=>{
+  const {mainId,subId}=req.body;
+  console.log(mainId,subId,"this is from the main req")
+  if(!mainId || !subId)throw new ApiError(400,'please fill the fields in req')
+  // const updateNotification=await Notification.findOneAndUpdate({
+  //   _id:mainId,
+  //   'notifications._id': subId
+  // }, {
+  //   $set: { 'notifications.$.isReaded': true }
+  // }, {
+  //   new: true
+  // });
+const updateNotification = await Notification.findOneAndUpdate(
+  {
+    user_id: req.user._id,
+    "notifications._id": subId
+  },
+  {
+    $set: { "notifications.$.isReaded": true }
+  },
+  { new: true }
+);
+if(updateNotification){
+    return res.status(200).json({
+    message: 'Notification marked as read',
+    notification: updateNotification
+  });
+}
+});
+
+const markAllAsRead = asyncHandler(async (req, res) => {
+  const { notiId } = req.params; 
+
+  if (!notiId) throw new ApiError(400, 'Please provide the notiId');
+
+  const updateNotification = await Notification.findOneAndUpdate(
+    { _id: notiId },
+    {
+      $set: { 'notifications.$[].isReaded': true }, 
+    },
+    { new: true }
+  );
+
+  if (!updateNotification) {
+    throw new ApiError(404, 'Notification not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'All notifications marked as read',
+    data: updateNotification,
+  });
+});
+
+
 export{
     RegisterUser,
-    LoginUser,LogoutUser,GetUser
-}
+    LoginUser,LogoutUser,GetUser,UserAuthencation,ChangePassword,updateProfile,UpdateNotifcation,
+    GetNotificationConfig,GetReportsStatus,GetNotifications,
+  SetNotificationsRead,markAllAsRead}

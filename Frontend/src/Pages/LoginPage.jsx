@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import useStore from '../Zustand/UserStore'
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -62,6 +63,8 @@ export default function LoginPage() {
   const handleSignUp = () => {
     navigate("/register")
   }
+
+  const SetcurrentUser = useStore((state) => state.setCurrentUser)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">

@@ -37,7 +37,6 @@ const AuthUser = asyncHandler(async (req, res, next) => {
    httpOnly: true,
     maxAge: 10 * 60 * 1000,
   });
-    res.send(json({message:"refrehsed the access token"}))
     req.user = user;
     return next();
   } catch (err) {
