@@ -36,6 +36,7 @@ let initialUser = null;
 if (rawCookie) {
   try {
     initialUser = JSON.parse(rawCookie);
+    SetcurrentUser(initialUser);
   } catch (err) {
     console.error("Failed to parse cookie:", err);
   }
