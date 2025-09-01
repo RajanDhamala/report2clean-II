@@ -13,6 +13,7 @@ import userStore from './Zustand/UserStore';
 import Dashboard from './Pages/Dashboard';
 import ViewReport from './Componnets/ViewReport';
 import ProtectedRoute from './Pages/ProtectRoute';
+import { useState } from 'react';
 
 
 const queryClient = new QueryClient({
@@ -25,22 +26,31 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const currentUser = userStore((state) => state.currentUser);
-  const SetcurrentUser = userStore((state) => state.SetcurrentUser); 
+const currentUser = userStore((state) => state.currentUser);
+const SetcurrentUser = userStore((state) => state.SetcurrentUser);
+const [loadingUser, setLoadingUser] = useState(true);
 
- useEffect(() => {
-  
-const rawCookie = Cookies.get("currentUser");
-let initialUser = null;
+useEffect(() => {
+  const fetchCurrentUser = async () => {
+    try {
+      const req = await fetch(`${import.meta.env.VITE_BASE_URL}/user/me`, {
+        method: "GET",
+        credentials: "include",
+      });
 
-if (rawCookie) {
-  try {
-    initialUser = JSON.parse(rawCookie);
-    SetcurrentUser(initialUser);
-  } catch (err) {
-    console.error("Failed to parse cookie:", err);
-  }
-}
+      if (req.ok) {
+        const data = await req.json();
+        SetcurrentUser(data?.data || null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch current user:", err);
+      SetcurrentUser(null);
+    } finally {
+      setLoadingUser(false); // done fetching
+    }
+  };
+
+  fetchCurrentUser();
 }, [SetcurrentUser]);
 
 
@@ -58,7 +68,7 @@ if (rawCookie) {
       <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />
         <BrowserRouter>
-          <Navbar />
+         {!loadingUser ? <Navbar /> : <Loader />}
           <Toaster
             position="top-right"
             reverseOrder={false}
