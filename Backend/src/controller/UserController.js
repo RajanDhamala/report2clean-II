@@ -59,25 +59,25 @@ const LoginUser=asyncHandler(async(req,res)=>{
 const isProd = process.env.NODE_ENV === "production";
 
 res.cookie("accessToken", newAccesstoken, {
-  httpOnly: true,               // JS cannot access token
-  secure: isProd,               // HTTPS only in production
-  sameSite: "strict",           // prevents CSRF
-  maxAge: 10 * 60 * 1000,       // 10 minutes
+  httpOnly: true,          // JS cannot read this (good for security)
+  secure: true,            // must be HTTPS for cross-origin cookies
+  sameSite: "none",        // allows cross-origin requests
+  maxAge: 10 * 60 * 1000,  // 10 minutes
   path: "/",
 });
 
 res.cookie("refreshToken", newRefreshtoken, {
   httpOnly: true,
-  secure: isProd,
-  sameSite: "strict",
+  secure: true,
+  sameSite: "none",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: "/",
 });
 
 res.cookie("currentUser", JSON.stringify(currentUser), {
-  httpOnly: false,              // frontend JS can read
-  secure: isProd,               // HTTPS only in production
-  sameSite: "lax",              // allows sending with same-site requests
+  httpOnly: false,         // frontend JS can read it
+  secure: true,
+  sameSite: "none",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: "/",
 });

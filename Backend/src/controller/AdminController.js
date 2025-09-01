@@ -22,11 +22,12 @@ console.log(username,password,process.env.USERNAME)
     });
 
         res.cookie("adminToken", token, {
-        httpOnly: true, 
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        httpOnly: true,
+        secure: true,        // required when sameSite='none'
+        sameSite: "none",    // allows cross-origin requests
         maxAge: 5 * 60 * 1000,
-        path: "/",});
+        path: "/",
+        });
 
     return res.send({ status: 200, message: "Admin logged in successfully" });
   }
