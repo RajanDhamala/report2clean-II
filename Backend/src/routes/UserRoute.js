@@ -1,11 +1,12 @@
 import { Router } from "express";
-
+import ApiResponse from "../utils/ApiResponse.js";
 import { LoginUser,RegisterUser,LogoutUser,GetUser,UserAuthencation,
 ChangePassword,updateProfile,GetNotificationConfig ,UpdateNotifcation,
 GetReportsStatus,GetNotifications,SetNotificationsRead,markAllAsRead} from "../controller/UserController.js";
 
 import AuthUser from "../middleware/UserMiddle.js";
 import uploadMiddleware from '../middleware/ImgMiddle.js'
+
 
 
 
@@ -43,5 +44,11 @@ UserRouter.get('/notifications',AuthUser,GetNotifications)
 UserRouter.post('/notifications',AuthUser,SetNotificationsRead)
 
 UserRouter.get('/read-all',AuthUser,markAllAsRead)
+
+
+UserRouter.get('/me',AuthUser,async(req,res)=>{
+  console.log("some one is requestins")
+  return res.send(new ApiResponse(200, 'User fetched successfully', req.user));
+})
 
 export default UserRouter

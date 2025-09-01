@@ -94,18 +94,29 @@ const LogoutUser=asyncHandler(async(req,res)=>{
   }
 res.clearCookie("accessToken", {
   httpOnly: true,
-  sameSite: "strict",
+  secure: true,
+  sameSite: "none",
+  path: "/",
 });
 
 res.clearCookie("refreshToken", {
   httpOnly: true,
-  sameSite: "strict",
+  secure: true,
+  sameSite: "none",
+  path: "/",
 });
-res.clearCookie('currentUser',{
-   httpOnly: true,
-},)
 
-return res.send(new ApiResponse(200, 'User logged out successfully', null));
+res.clearCookie("currentUser", {
+  httpOnly: false, // matches the one you set
+  secure: true,
+  sameSite: "none",
+  path: "/",
+});
+
+return res.send({
+  success: true,
+  message: "Logged out successfully",
+});
 })
 
 const GetUser=asyncHandler(async(req,res)=>{
