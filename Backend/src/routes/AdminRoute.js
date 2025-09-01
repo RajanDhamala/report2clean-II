@@ -35,7 +35,7 @@ AdminRouter.get("/", adminAuth, async (req, res) => {
 });
 
 
-AdminRouter.post("/loginme",AuthUser,AdminLogin)
+AdminRouter.post("/loginme",AdminLogin)
 // ------------------- API endpoints -------------------
 AdminRouter.patch("/update-status/:status/:report_id",adminAuth, async (req, res) => {
   const { status, report_id } = req.params;
