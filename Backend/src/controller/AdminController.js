@@ -4,6 +4,7 @@ import ApiResponse from '../utils/ApiResponse.js'
 import Report from "../schema/Report.js";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv";
+import User from "../schema/User.js";
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
@@ -14,10 +15,13 @@ const AdminLogin = asyncHandler(async (req, res) => {
   if (!username || !password) throw new ApiError(400, "Please add username and password");
 
 console.log(username,password,process.env.USERNAME)
-  if (username ==process.env.USERNAME && password ==process.env.PASSWORD) {
-    const user = { _id:req.user._id, username }; // Add _id here
-
-    const token = jwt.sign({ _id: user._id, username: user.username }, JWT_SECRET, {
+  if ( password ==process.env.PASSWORD) {
+           const user=await User.findOne({fullname:username}).select('_id fullname')
+            if(!user){
+                throw new ApiError(404, "User not found");
+            }
+            console.log("user found:",user)
+    const token = jwt.sign({ _id: user?._id, username: user?.fullname }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
 
@@ -31,7 +35,6 @@ console.log(username,password,process.env.USERNAME)
 
     return res.send({ status: 200, message: "Admin logged in successfully" });
   }
-
   return res.send({ status: 401, message: "Invalid credentials" });
 });
 // ------------------- Update Status -------------------
