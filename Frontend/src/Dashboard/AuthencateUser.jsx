@@ -100,7 +100,7 @@ export default function AuthenticateUser({ isVerified = true,date, onVerificatio
     setIsSubmitting(true);
 
     try {
-      const req=await axios.post("http://localhost:8000/user/authencation", formData, {
+      const req=await axios.post(`${import.meta.env.VITE_BASE_URL}/user/authencation`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
