@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 // Fetch with pagination
 const fetchReports = async ({ queryKey }) => {
   const [, page] = queryKey;
-  const response = await axios.get(`http://localhost:8000/report/seereport?page=${page}`, {
+  const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/report/seereport?page=${page}`, {
     withCredentials: true,
   });
   return response.data.data;

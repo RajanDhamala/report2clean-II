@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Detail - <%= report._id.toString().substring(report._id.toString().length - 6) %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 300px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <h1 class="text-2xl font-semibold text-gray-900">Report :<%= report.description  %></h1>
+                <button onclick="history.back()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    ← Back to List
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Basic Information -->
+                <div class="bg-white shadow-sm rounded-lg border p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Report Details</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Description</label>
+                            <p class="mt-1 text-gray-900"><%= report.description %></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Address</label>
+                            <p class="mt-1 text-gray-900"><%= report.address %></p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Status</label>
+                                <div class="mt-1">
+                                    <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full
+                                        <% if (report.status === 'completed') { %>
+                                            bg-green-100 text-green-800
+                                        <% } else if (report.status === 'pending') { %>
+                                            bg-yellow-100 text-yellow-800
+                                        <% } else if (report.status === 'in-progress') { %>
+                                            bg-blue-100 text-blue-800
+                                        <% } else if (report.status === 'rejected') { %>
+                                            bg-red-100 text-red-800
+                                        <% } else { %>
+                                            bg-gray-100 text-gray-800
+                                        <% } %>">
+                                        <%= report.status %>
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Priority</label>
+                                <div class="mt-1">
+                                    <% if (report.urgency) { %>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                                            ⚠ Urgent
+                                        </span>
+                                    <% } else { %>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-600">
+                                            Normal
+                                        </span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- People Information -->
+                <div class="bg-white shadow-sm rounded-lg border p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">People Involved</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Reported By</label>
+                            <div class="mt-1">
+                                <p class="font-medium text-gray-900"><%= report.reported_by?.fullname || 'N/A' %></p>
+                                <p class="text-sm text-gray-600"><%= report.reported_by?.email || 'N/A' %></p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Accepted By</label>
+                            <div class="mt-1">
+                                <p class="font-medium text-gray-900"><%= report.acceptedBy?.username || 'Unassigned' %></p>
+                                <p class="text-sm text-gray-600"><%= report.acceptedBy?.email || 'N/A' %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="bg-white shadow-sm rounded-lg border p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Created</span>
+                            <span class="text-sm text-gray-900"><%= new Date(report.createdAt).toLocaleString() %></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Last Updated</span>
+                            <span class="text-sm text-gray-900"><%= new Date(report.updatedAt).toLocaleString() %></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <% if (report.images && report.images.length > 0) { %>
+                    <div class="bg-white shadow-sm rounded-lg border p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Images (<%= report.images.length %>)</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <% report.images.forEach(function(image, index) { %>
+                                <div class="relative group cursor-pointer" onclick="openImageModal('<%= image %>', <%= index %>)">
+                                    <img src="<%= image %>" alt="Report Image <%= index + 1 %>" 
+                                         class="w-full h-48 object-cover rounded-lg border hover:opacity-90 transition-opacity">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all duration-200 flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Map -->
+                <div class="bg-white shadow-sm rounded-lg border p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Location</h2>
+                    <div id="map" class="w-full rounded-lg border"></div>
+                    <div class="mt-3 text-sm text-gray-600">
+                        <p><strong>Coordinates:</strong></p>
+                        <p>Lat: <%= report.location?.coordinates ? report.location.coordinates[1] : 'N/A' %></p>
+                        <p>Lng: <%= report.location?.coordinates ? report.location.coordinates[0] : 'N/A' %></p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="bg-white shadow-sm rounded-lg border p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-2">Update Status</label>
+                            <select id="statusSelect" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="pending" <%= report.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="onProgress" <%= report.status === 'onProgress' ? 'selected' : '' %>>onProgress</option>
+                                <option value="completed" <%= report.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                                <option value="rejected" <%= report.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                            </select>
+                        </div>
+                        <button onclick="updateStatus()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Update Status
+                        </button>
+                        <button onclick="deleteReport()" class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            Delete Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Full Screen Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-95 z-[9999] hidden flex items-center justify-center p-0">
+        <div class="relative w-full h-full">
+            <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 z-[10000] bg-black bg-opacity-50 rounded-full p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <img id="modalImage" src="" alt="Full size image" class="w-full h-full object-contain">
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-75 px-4 py-2 rounded-lg">
+                <span id="imageCounter"></span>
+            </div>
+            <% if (report.images && report.images.length > 1) { %>
+                <button onclick="previousImage()" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <button onclick="nextImage()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            <% } %>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        <% if (report.location && report.location.coordinates) { %>
+            const lat = <%= report.location.coordinates[1] %>;
+            const lng = <%= report.location.coordinates[0] %>;
+            
+            const map = L.map('map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup('<strong>Report Location</strong><br><%= report.address %>')
+                .openPopup();
+        <% } else { %>
+            document.getElementById('map').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Location data not available</div>';
+        <% } %>
+
+        // Image modal functionality
+        let currentImageIndex = 0;
+        const images = [<% if (report.images) { %><% report.images.forEach(function(img, index) { %>'<%= img %>'<%= index < report.images.length - 1 ? ',' : '' %><% }); %><% } %>];
+
+        function openImageModal(imageSrc, index) {
+            currentImageIndex = index;
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('imageCounter').textContent = `${index + 1} of ${images.length}`;
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function nextImage() {
+            if (currentImageIndex < images.length - 1) {
+                currentImageIndex++;
+                openImageModal(images[currentImageIndex], currentImageIndex);
+            }
+        }
+
+        function previousImage() {
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                openImageModal(images[currentImageIndex], currentImageIndex);
+            }
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+            }
+            if (e.key === 'ArrowRight' && currentImageIndex < images.length - 1) {
+                nextImage();
+            }
+            if (e.key === 'ArrowLeft' && currentImageIndex > 0) {
+                previousImage();
+            }
+        });
+
+        // Action functions
+    function updateStatus() {
+        const newStatus = document.getElementById('statusSelect').value;
+
+        // Optimistically update UI badge
+        const badge = document.querySelector('.inline-flex.px-3.py-1.text-sm.font-semibold.rounded-full');
+        if (badge) {
+            badge.textContent = newStatus;
+
+            // Remove previous bg/text classes
+            badge.className = 'inline-flex px-3 py-1 text-sm font-semibold rounded-full';
+
+            // Add new classes based on status
+            if (newStatus === 'completed') {
+                badge.classList.add('bg-green-100', 'text-green-800');
+            } else if (newStatus === 'pending') {
+                badge.classList.add('bg-yellow-100', 'text-yellow-800');
+            } else if (newStatus === 'in-progress' || newStatus === 'onProgress') {
+                badge.classList.add('bg-blue-100', 'text-blue-800');
+            } else if (newStatus === 'rejected') {
+                badge.classList.add('bg-red-100', 'text-red-800');
+            } else {
+                badge.classList.add('bg-gray-100', 'text-gray-800');
+            }
+        }
+
+        // Send PATCH request to server
+        fetch(`/admin/status/<%= report._id %>`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Error updating status: ' + data.message);
+                // Optional: revert UI if server fails
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating status');
+            location.reload(); // revert UI on error
+        });
+    }
+
+        function deleteReport() {
+            if (confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+                fetch(`/admin/report/<%= report._id %>`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/admin';
+                    } else {
+                        alert('Error deleting report: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting report');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

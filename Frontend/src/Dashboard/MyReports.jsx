@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom"; // or use `next/router` if using Next.js
 
 const fetchReports = async () => {
-  const res = await axios.get("http://localhost:8000/user/urs-reports", {
+  const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/urs-reports`, {
     withCredentials: true,
   });
   return res.data.data;

@@ -42,11 +42,12 @@ export default function Dashboard() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const queryClient = useQueryClient();
+  const [contributionData,setContributionData]=useState(null)
 
   const { data: userProfile, isLoading, error } = useQuery({
     queryKey: ["userProfile"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:8000/user/profile", {
+      const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/profile`, {
         withCredentials: true,
       });
       return res.data.data;
@@ -59,7 +60,7 @@ export default function Dashboard() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
-      const res = await axios.post("http://localhost:8000/user/update-profile", data, {
+      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/update-profile`, data, {
         withCredentials: true,
       });
       return res.data;
@@ -88,7 +89,7 @@ export default function Dashboard() {
 
   const passwordMutation = useMutation({
     mutationFn: async (data) => {
-      const res = await axios.post("http://localhost:8000/user/change-pswd", data, {
+      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/change-pswd`, data, {
         withCredentials: true,
       });
       return res.data;
@@ -104,7 +105,7 @@ export default function Dashboard() {
 
     const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:8000/user/logout', {
+      await axios.get(`${import.meta.env.VITE_BASE_URL}/user/logout`, {
         withCredentials: true,
       });
       navigate('/login');
@@ -124,9 +125,16 @@ export default function Dashboard() {
   const { data: chartData, isLoading: isChartLoading } = useQuery({
     queryKey: ["view-charts"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:8000/report/view-charts", {
+      const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/report/view-charts`, {
         withCredentials: true,
       });
+
+      setContributionData([
+        { name: "Reports Submitted", value: res.data.data.lifetimeContributions.totalReports || 0, color: "#3b82f6" },
+  { name: "Issues Resolved", value: res.data.data.lifetimeContributions.completedReports ||0, color: "#10b981" },
+  { name: "Community Posts", value: 0, color: "#f59e0b" },
+  { name: "Reviews Given", value: 0, color: "#ef4444" },
+]);
       return res.data.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -137,13 +145,7 @@ export default function Dashboard() {
   const activityData = chartData?.weeklyActivityData || [];
   const trendData = chartData?.monthlyTrendData || [];
 
-  const contributionData = [
-    { name: "Reports Submitted", value: 45, color: "#3b82f6" },
-    { name: "Issues Resolved", value: 38, color: "#10b981" },
-    { name: "Community Posts", value: 12, color: "#f59e0b" },
-    { name: "Reviews Given", value: 23, color: "#ef4444" },
-  ];
-
+ 
   if (isLoading) return <div className="p-8 text-gray-500">Loading profile...</div>;
   if (error) return <div className="p-8 text-red-500">Failed to load profile.</div>;
 
@@ -428,99 +430,115 @@ export default function Dashboard() {
               </Card>
 
               {/* Your Contributions */}
-              <Card className="rounded-2xl shadow-md bg-white">
-                <CardHeader className="p-6">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <Award className="w-5 h-5 text-amber-600" />
-                    Your Contributions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={contributionData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {contributionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: '#fff',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Legend 
-                        verticalAlign="bottom" 
-                        height={36}
-                        formatter={(value, entry) => (
-                          <span style={{ color: entry.color }}>{value}</span>
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              
+<Card className="rounded-2xl shadow-md bg-white">
+  <CardHeader className="p-6">
+    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+      <Award className="w-5 h-5 text-amber-600" />
+      Your Contributions
+    </CardTitle>
+  </CardHeader>
+  <CardContent className="p-6 pt-0">
+    {contributionData && contributionData.length > 0 ? (
+      <ResponsiveContainer width="100%" height={250}>
+        <PieChart>
+          <Pie
+            data={contributionData}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={100}
+            paddingAngle={5}
+            dataKey="value"
+          >
+            {contributionData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip 
+            contentStyle={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px'
+            }}
+          />
+          <Legend 
+            verticalAlign="bottom" 
+            height={36}
+            formatter={(value, entry) => (
+              <span style={{ color: entry.color }}>{value}</span>
+            )}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    ) : (
+      <div className="flex justify-center items-center h-64 text-gray-400">
+        Loading chart...
+      </div>
+    )}
+  </CardContent>
+</Card>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="rounded-xl shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-blue-600 font-medium">Total Reports</p>
-                      <p className="text-2xl font-bold text-blue-900">45</p>
-                    </div>
-                    <FileText className="w-8 h-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="rounded-xl shadow-sm bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-green-600 font-medium">Resolved</p>
-                      <p className="text-2xl font-bold text-green-900">38</p>
-                    </div>
-                    <Check className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="rounded-xl shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-purple-600 font-medium">This Month</p>
-                      <p className="text-2xl font-bold text-purple-900">12</p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-purple-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="rounded-xl shadow-sm bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-amber-600 font-medium">Community Score</p>
-                      <p className="text-2xl font-bold text-amber-900">847</p>
-                    </div>
-                    <Award className="w-8 h-8 text-amber-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+         
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <Card className="rounded-xl shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+    <CardContent className="p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-blue-600 font-medium">Total Reports</p>
+          <p className="text-2xl font-bold text-blue-900">
+            {chartData?.localEvents2km?.totalReports ?? 0}
+          </p>
+        </div>
+        <FileText className="w-8 h-8 text-blue-600" />
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card className="rounded-xl shadow-sm bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+    <CardContent className="p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-green-600 font-medium">Resolved</p>
+          <p className="text-2xl font-bold text-green-900">
+            {chartData?.localEvents2km?.completedReports ?? 0}
+          </p>
+        </div>
+        <Check className="w-8 h-8 text-green-600" />
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card className="rounded-xl shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+    <CardContent className="p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-purple-600 font-medium">This Month</p>
+          <p className="text-2xl font-bold text-purple-900">
+            {chartData?.localEvents2km?.thisMonthReports ?? 0}
+          </p>
+        </div>
+        <TrendingUp className="w-8 h-8 text-purple-600" />
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card className="rounded-xl shadow-sm bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+    <CardContent className="p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-amber-600 font-medium">Community Score</p>
+          <p className="text-2xl font-bold text-amber-900">
+            {chartData?.communityScore ?? 0}
+          </p>
+        </div>
+        <Award className="w-8 h-8 text-amber-600" />
+      </div>
+    </CardContent>
+  </Card>
+</div>
           </div>
         );
       case "verification":

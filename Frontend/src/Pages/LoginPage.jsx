@@ -34,7 +34,7 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await axios.post("http://localhost:8000/user/login", data, {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/login`, data, {
         withCredentials: true,
       })
 

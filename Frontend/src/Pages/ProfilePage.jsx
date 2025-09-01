@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa';
 
 const fetchUserProfile = async () => {
-  const res = await axios.get('http://localhost:8000/user/profile', {
+  const res = await axios.get(`${import.meta.env.import.meta.env.VITE_BASE_URL}/user/profile`, {
     withCredentials: true,
   });
   return res.data.data;
@@ -27,7 +27,7 @@ const ProfilePage = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:8000/user/logout', {
+      await axios.get(`${import.meta.env.import.meta.env.VITE_BASE_URL}/user/logout`, {
         withCredentials: true,
       });
       navigate('/login');

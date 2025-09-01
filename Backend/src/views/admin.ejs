@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">Welcome, <%= username %></h1>
+
+    <!-- Filters -->
+    <div class="mb-6 flex items-center space-x-4">
+      <form id="filterForm" method="GET" class="flex space-x-2 items-center">
+        <label>Status:</label>
+        <select name="status" class="px-2 py-1 border rounded">
+          <option value="">All</option>
+          <option value="pending" <%= selectedStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+          <option value="onProgress" <%= selectedStatus === 'onProgress' ? 'selected' : '' %>>In Progress</option>
+          <option value="completed" <%= selectedStatus === 'completed' ? 'selected' : '' %>>Completed</option>
+          <option value="rejected" <%= selectedStatus === 'rejected' ? 'selected' : '' %>>Rejected</option>
+        </select>
+
+        <label>
+          <input type="checkbox" name="nearby" value="true" <%= nearby ? 'checked' : '' %>> Nearby Events
+        </label>
+
+        <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Filter</button>
+      </form>
+      <a href="/report/get/26.4663/87.2837/2" 
+   class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+   View Full Map
+</a>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+        <thead class="bg-blue-500 text-white">
+          <tr>
+            <th class="py-3 px-4 text-left">ID</th>
+            <th class="py-3 px-4 text-left">Description</th>
+            <th class="py-3 px-4 text-left">Status</th>
+            <th class="py-3 px-4 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% reports.forEach(r => { %>
+            <tr data-id="<%= r._id %>" class="hover:bg-gray-50 transition-colors cursor-pointer">
+              <td class="py-3 px-4 text-gray-700 text-sm"><%= r._id %></td>
+              <td class="py-3 px-4 text-gray-700 text-sm"><%= r.description %></td>
+              <td class="py-3 px-4">
+                <span class="status-badge px-2 py-1 rounded-full text-xs font-semibold 
+                  <%= r.status === 'completed' ? 'bg-green-200 text-green-800' : 
+                      r.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                      r.status === 'onProgress' ? 'bg-blue-200 text-blue-800' :
+                      r.status === 'rejected' ? 'bg-red-200 text-red-800' :
+                      'bg-gray-200 text-gray-800' %>">
+                  <%= r.status %>
+                </span>
+              </td>
+              <td class="py-3 px-4 space-x-2 flex items-center">
+                <!-- Status Dropdown -->
+                <select 
+                  class="status-select px-2 py-1 border rounded text-sm"
+                  data-id="<%= r._id %>"
+                >
+                  <option value="pending" <%= r.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                  <option value="onProgress" <%= r.status === 'onProgress' ? 'selected' : '' %>>In Progress</option>
+                  <option value="completed" <%= r.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                  <option value="rejected" <%= r.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                </select>
+
+                <!-- Delete Button -->
+                <button 
+                  class="delete-btn px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm font-medium"
+                  data-id="<%= r._id %>">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-6 flex justify-center items-center space-x-2">
+      <% for(let i = 1; i <= totalPages; i++) { %>
+        <a href="/admin?page=<%= i %><%= selectedStatus ? '&status=' + selectedStatus : '' %><%= nearby ? '&nearby=true' : '' %>" 
+           class="px-4 py-2 rounded border <%= i === currentPage ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100' %>">
+          <%= i %>
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    // Prevent dropdown & delete from triggering row click
+  document.querySelectorAll('.status-select').forEach(select => {
+  select.addEventListener('click', e => e.stopPropagation());
+  select.addEventListener('change', async e => {
+    const reportId = e.target.dataset.id;
+    const newStatus = e.target.value;
+
+    try {
+      const res = await fetch(`/admin/status/${reportId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (res.ok) {
+        //  Update DOM without reload
+        const row = document.querySelector(`tr[data-id="${reportId}"]`);
+        const badge = row.querySelector('.status-badge');
+
+        badge.textContent = newStatus;
+        badge.className = `status-badge px-2 py-1 rounded-full text-xs font-semibold ${
+          newStatus === 'completed'
+            ? 'bg-green-200 text-green-800'
+            : newStatus === 'pending'
+            ? 'bg-yellow-200 text-yellow-800'
+            : newStatus === 'onProgress'
+            ? 'bg-blue-200 text-blue-800'
+            : newStatus === 'rejected'
+            ? 'bg-red-200 text-red-800'
+            : 'bg-gray-200 text-gray-800'
+        }`;
+      } else {
+        alert('Failed to update status');
+      }
+    } catch (err) {
+      alert('Error updating status');
+    }
+  });
+});
+   
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', async e => {
+    e.stopPropagation();
+    const reportId = btn.dataset.id;
+
+    if (confirm('Are you sure you want to delete this report?')) {
+      try {
+        const res = await fetch(`/admin/report/${reportId}`, {
+          method: 'DELETE'
+        });
+
+        if (res.ok) {
+          //  Remove row from DOM
+          const row = document.querySelector(`tr[data-id="${reportId}"]`);
+          row.remove();
+        } else {
+          alert('Failed to delete report');
+        }
+      } catch (err) {
+        alert('Error deleting report');
+      }
+    }
+  });
+});
+
+    // Row click → report detail
+    document.querySelectorAll('tr[data-id]').forEach(row => {
+      row.addEventListener('click', () => {
+        const reportId = row.dataset.id;
+          window.location.href = `/admin/report/${reportId}`;
+      });
+    });
+  </script>
+</body>
+</html>
+

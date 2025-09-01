@@ -11,39 +11,55 @@ import { Link } from "react-router-dom";
 
 function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100">
-      {/* Hero */}
-      <HeroSection />
+    <div className="flex flex-col min-h-screen relative bg-gradient-to-br from-slate-50 via-white to-teal-50/30 text-slate-800 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 dark:text-slate-100">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-teal-100/40 to-emerald-200/30 dark:from-teal-900/20 dark:to-emerald-800/10 animate-pulse" />
+        <div className="absolute top-1/3 -left-32 w-64 h-64 rounded-full bg-gradient-to-br from-amber-100/30 to-orange-200/20 dark:from-amber-900/10 dark:to-orange-800/5 animate-pulse delay-1000" />
+        <div className="absolute bottom-20 right-1/4 w-48 h-48 rounded-full bg-gradient-to-br from-cyan-100/40 to-teal-200/30 dark:from-cyan-900/15 dark:to-teal-800/10 animate-pulse delay-2000" />
+        <div className="absolute bottom-1/3 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-emerald-100/50 to-green-200/40 dark:from-emerald-900/20 dark:to-green-800/15 animate-pulse delay-3000" />
+      </div>
 
-      {/* Stats */}
-      <StatsBar />
+      {/* Mesh Gradient Overlay */}
+      <div className="fixed inset-0 pointer-events-none opacity-30 dark:opacity-20">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(45,212,191,0.15),transparent_40%),radial-gradient(ellipse_at_bottom_right,rgba(16,185,129,0.1),transparent_40%),radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.08),transparent_50%)]" />
+      </div>
 
-      {/* Features */}
-      <FeaturesSection />
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Hero */}
+        <HeroSection />
 
-      {/* How It Works */}
-      <HowItWorks />
+        {/* Stats */}
+        <StatsBar />
 
-      {/* Map Preview */}
-      <MapPreview />
+        {/* Features */}
+        <FeaturesSection />
 
-      {/* AI + Location Recommendation Highlight */}
-      <IntelligenceHighlight />
+        {/* How It Works */}
+        <HowItWorks />
 
-      {/* Testimonials */}
-      <Testimonials />
+        {/* Map Preview */}
+        <MapPreview />
 
-      {/* Authorities / Partners */}
-      <AuthoritiesSection />
+        {/* AI + Location Recommendation Highlight */}
+        <IntelligenceHighlight />
 
-      {/* FAQ */}
-      <FAQSection />
+        {/* Testimonials */}
+        <Testimonials />
 
-      {/* Final Call To Action */}
-      <FinalCTA />
+        {/* Authorities / Partners */}
+        <AuthoritiesSection />
 
-      {/* Footer */}
-      <Footer />
+        {/* FAQ */}
+        <FAQSection />
+
+        {/* Final Call To Action */}
+        <FinalCTA />
+
+        {/* Footer */}
+        <Footer />
+      </div>
     </div>
   );
 }
@@ -92,14 +108,28 @@ function StatsBar() {
     { label: "Areas Covered", value: "37" },
   ];
   return (
-    <section className="bg-slate-50 dark:bg-slate-800/50 border-y border-slate-200 dark:border-slate-700">
-      <div className="grid grid-cols-2 gap-6 px-6 py-10 mx-auto max-w-6xl md:grid-cols-4 md:gap-0">
-        {stats.map((s) => (
-          <div key={s.label} className="flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">{s.value}</span>
-            <span className="mt-2 text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-slate-400">
+    <section className="relative bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:bg-gradient-to-r dark:from-slate-800/50 dark:via-slate-800/30 dark:to-slate-800/50 border-y border-slate-200/50 dark:border-slate-700/50">
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-30 dark:opacity-20">
+        <div className="w-full h-full bg-[linear-gradient(90deg,rgba(45,212,191,0.05)_0%,transparent_50%,rgba(45,212,191,0.05)_100%)]" />
+      </div>
+      
+      {/* Subtle animation bars */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-teal-200/40 to-transparent dark:via-teal-600/20 animate-pulse" />
+        <div className="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-transparent via-emerald-200/40 to-transparent dark:via-emerald-600/20 animate-pulse delay-500" />
+        <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-teal-200/40 to-transparent dark:via-teal-600/20 animate-pulse delay-1000" />
+      </div>
+
+      <div className="relative grid grid-cols-2 gap-6 px-6 py-10 mx-auto max-w-6xl md:grid-cols-4 md:gap-0">
+        {stats.map((s, index) => (
+          <div key={s.label} className="flex flex-col items-center justify-center group">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white md:text-3xl group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors duration-300">{s.value}</span>
+            <span className="mt-2 text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors duration-300">
               {s.label}
             </span>
+            {/* Decorative dot */}
+            <div className="mt-3 w-1 h-1 rounded-full bg-teal-400/60 dark:bg-teal-500/60 group-hover:bg-teal-500 dark:group-hover:bg-teal-400 transition-colors duration-300" />
           </div>
         ))}
       </div>
@@ -141,8 +171,15 @@ function FeaturesSection() {
     },
   ];
   return (
-    <section className="px-6 py-24 mx-auto max-w-7xl md:px-10 lg:px-16">
-      <div className="text-center">
+    <section className="relative px-6 py-24 mx-auto max-w-7xl md:px-10 lg:px-16">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-32 h-32 rounded-full bg-gradient-to-br from-teal-100/20 to-emerald-200/15 dark:from-teal-900/10 dark:to-emerald-800/8 animate-pulse delay-1000" />
+        <div className="absolute bottom-32 left-16 w-24 h-24 rounded-full bg-gradient-to-br from-cyan-100/25 to-teal-200/20 dark:from-cyan-900/12 dark:to-teal-800/10 animate-pulse delay-2000" />
+        <div className="absolute top-1/2 left-8 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-100/30 to-green-200/25 dark:from-emerald-900/15 dark:to-green-800/12 animate-pulse" />
+      </div>
+
+      <div className="relative text-center">
         <h2 className="text-3xl font-bold md:text-4xl">
           Key Capabilities of <span className="text-teal-600 dark:text-teal-400">Report2Clean</span>
         </h2>
@@ -150,15 +187,15 @@ function FeaturesSection() {
             Empowering citizens & authorities with data, visibility, and automation to drive cleaner environments.
         </p>
       </div>
-      <div className="grid gap-8 mt-16 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="relative grid gap-8 mt-16 sm:grid-cols-2 lg:grid-cols-3">
         {features.map(({ title, desc, icon: Icon }) => (
           <div
             key={title}
-            className="relative group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 shadow-sm hover:shadow-xl transition-all duration-300 p-6 overflow-hidden"
+            className="relative group rounded-xl border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm hover:shadow-xl transition-all duration-300 p-6 overflow-hidden"
           >
-            <div className="absolute inset-0 transition-opacity opacity-0 pointer-events-none bg-gradient-to-br from-teal-50 to-amber-50 dark:from-teal-900/10 dark:to-amber-900/10 group-hover:opacity-100" />
+            <div className="absolute inset-0 transition-opacity opacity-0 pointer-events-none bg-gradient-to-br from-teal-50/80 to-amber-50/60 dark:from-teal-900/20 dark:to-amber-900/15 group-hover:opacity-100" />
             <div className="relative flex items-start gap-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300 ring-1 ring-teal-200 dark:ring-teal-700">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 text-teal-700 dark:from-teal-900/60 dark:to-teal-800/40 dark:text-teal-300 ring-1 ring-teal-200/60 dark:ring-teal-700/60 shadow-sm">
                 <Icon className="w-6 h-6" />
               </div>
               <div>
@@ -171,7 +208,7 @@ function FeaturesSection() {
             <div className="mt-6">
               <Link
                 to="/report"
-                className="inline-flex items-center text-sm font-medium text-teal-600 dark:text-teal-400 hover:underline"
+                className="inline-flex items-center text-sm font-medium text-teal-600 dark:text-teal-400 hover:underline group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors"
               >
                 Learn more →
               </Link>
@@ -657,12 +694,35 @@ function BackgroundDecor({ subtle = false }) {
     <div
       className={`absolute inset-0 -z-10 ${
         subtle
-          ? "bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800"
-          : "bg-gradient-to-br from-teal-50 via-white to-emerald-100 dark:from-slate-800 dark:via-slate-900 dark:to-teal-900"
+          ? "bg-gradient-to-br from-teal-50/50 via-transparent to-emerald-50/30 dark:from-teal-900/10 dark:via-transparent dark:to-emerald-900/5"
+          : "bg-gradient-to-br from-teal-50/80 via-transparent to-emerald-100/60 dark:from-teal-900/20 dark:via-transparent dark:to-emerald-900/15"
       }`}
     >
-      <div className="absolute inset-0 opacity-40 mix-blend-overlay">
-        <div className="w-full h-full bg-[radial-gradient(circle_at_25%_25%,rgba(45,212,191,0.25),transparent_60%)]" />
+      {/* Radial gradients for depth */}
+      <div className="absolute inset-0 opacity-60 dark:opacity-30">
+        <div className="absolute top-20 left-1/4 w-96 h-96 rounded-full bg-gradient-radial from-teal-200/40 to-transparent dark:from-teal-400/10 animate-pulse" />
+        <div className="absolute bottom-20 right-1/3 w-80 h-80 rounded-full bg-gradient-radial from-emerald-200/30 to-transparent dark:from-emerald-400/8 animate-pulse delay-1000" />
+        <div className="absolute top-1/2 right-20 w-64 h-64 rounded-full bg-gradient-radial from-cyan-200/35 to-transparent dark:from-cyan-400/10 animate-pulse delay-2000" />
+      </div>
+      
+      {/* Geometric patterns */}
+      <div className="absolute inset-0 opacity-20 dark:opacity-10">
+        <svg className="w-full h-full" viewBox="0 0 800 600" fill="none">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="1" fill="currentColor" className="text-teal-500/30" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
+
+      {/* Floating elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-10 w-6 h-6 rotate-45 bg-gradient-to-br from-teal-400/20 to-teal-600/30 dark:from-teal-400/10 dark:to-teal-600/15 animate-bounce duration-3000" />
+        <div className="absolute top-3/4 right-16 w-4 h-4 rotate-12 bg-gradient-to-br from-emerald-400/25 to-emerald-600/35 dark:from-emerald-400/12 dark:to-emerald-600/18 animate-bounce delay-1000 duration-3000" />
+        <div className="absolute top-1/2 left-1/3 w-3 h-3 rounded-full bg-gradient-to-br from-cyan-400/30 to-cyan-600/40 dark:from-cyan-400/15 dark:to-cyan-600/20 animate-bounce delay-2000 duration-3000" />
+        <div className="absolute bottom-1/3 right-1/4 w-5 h-5 rotate-45 bg-gradient-to-br from-amber-400/20 to-amber-600/30 dark:from-amber-400/10 dark:to-amber-600/15 animate-bounce delay-500 duration-3000" />
       </div>
     </div>
   );

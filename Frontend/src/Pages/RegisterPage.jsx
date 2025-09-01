@@ -47,7 +47,7 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      const response = await axios.post("http://localhost:8000/user/register", data)
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/register`, data)
 
       toast.success(`Registration successful! Welcome, ${data.fullname}`, {
         duration: 4000,

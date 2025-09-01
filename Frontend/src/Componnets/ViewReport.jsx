@@ -32,7 +32,7 @@ L.Icon.Default.mergeOptions({
 })
 
 const fetchReport = async (id) => {
-  const res = await axios.get(`http://localhost:8000/report/view/${id}`)
+  const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/report/view/${id}`)
   return res.data.data
 }
 

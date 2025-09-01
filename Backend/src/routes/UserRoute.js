@@ -42,6 +42,6 @@ UserRouter.get('/notifications',AuthUser,GetNotifications)
 
 UserRouter.post('/notifications',AuthUser,SetNotificationsRead)
 
-UserRouter.get('/read-all/:notiId',AuthUser,markAllAsRead)
+UserRouter.get('/read-all',AuthUser,markAllAsRead)
 
 export default UserRouter

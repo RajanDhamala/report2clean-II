@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 
 const fetchNotificationConfig = async () => {
-  const res = await axios.get("http://localhost:8000/user/noti-config",{withCredentials: true});
+  const res = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/noti-config`,{withCredentials: true});
   return res.data.data;
 };
 
 const updateNotificationConfig = async (data) => {
-  const res = await axios.post("http://localhost:8000/user/edit-config", data,{withCredentials: true});
+  const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/edit-config`, data,{withCredentials: true});
   return res.data.data;
 };
 

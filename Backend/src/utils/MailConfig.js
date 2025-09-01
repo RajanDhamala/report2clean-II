@@ -107,5 +107,28 @@ const VerificationReport = async (receiverEmail, username) => {
     console.error("❌ Error sending verification email:", error);
   }
 };
+const NearbyReportAlert = async (receiverMail, receiverName, senderName, reportTitle, reportAddress) => {
+  const htmlContent = emailTemplateWrapper(`
+    <p>Hello <strong>${receiverName}</strong>,</p>
+    <p>Just a heads up! <strong>${senderName}</strong> has submitted a new report nearby:</p>
 
-export { transporter, RegisterMail, ReportSubmission, VerificationReport };
+    <div style="margin: 16px 0; padding: 12px; background-color: #f3f4f6; border-left: 4px solid #f59e0b;">
+      <p style="margin: 0;"><strong>Report Title:</strong> ${reportTitle}</p>
+      <p style="margin: 4px 0 0;"><strong>Location:</strong> ${reportAddress}</p>
+    </div>
+
+    <p>Stay aware and help us keep the area clean! 🌱</p>
+    <p>Warm regards,<br/><strong>The Report2Clean Team</strong></p>
+  `, "New Report Alert Nearby 📍");
+
+  const info = await transporter.sendMail({
+    from: '"Report2Clean Alerts" <report2clean@gmail.com>',
+    to: receiverMail,
+    subject: "📍 New Environmental Report Submitted Nearby – Report2Clean",
+    html: htmlContent,
+  });
+
+  console.log("📨 Nearby report alert email sent:", info.messageId);
+};
+
+export { transporter, RegisterMail, ReportSubmission, VerificationReport,NearbyReportAlert };

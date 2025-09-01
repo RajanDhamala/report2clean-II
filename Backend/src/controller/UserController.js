@@ -55,18 +55,34 @@ const LoginUser=asyncHandler(async(req,res)=>{
       _id:existingUser._id,
     }
 
-res.cookie('accessToken', newAccesstoken, {
-  httpOnly: true,
-  maxAge: 10 * 60 * 1000,
+
+const isProd = process.env.NODE_ENV === "production";
+
+res.cookie("accessToken", newAccesstoken, {
+  httpOnly: true,               // JS cannot access token
+  secure: isProd,               // HTTPS only in production
+  sameSite: "strict",           // prevents CSRF
+  maxAge: 10 * 60 * 1000,       // 10 minutes
+  path: "/",
 });
 
-res.cookie('refreshToken', newRefreshtoken, {
+res.cookie("refreshToken", newRefreshtoken, {
   httpOnly: true,
-   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 day
+  secure: isProd,
+  sameSite: "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: "/",
 });
 
-res.cookie('currentUser',currentUser,{
-})
+res.cookie("currentUser", JSON.stringify(currentUser), {
+  httpOnly: false,              // frontend JS can read
+  secure: isProd,               // HTTPS only in production
+  sameSite: "lax",              // allows sending with same-site requests
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: "/",
+});
+
+
 return res.send(new ApiResponse(200,'User logged in succesfully',null))
 })
 
@@ -152,7 +168,7 @@ const UserAuthencation = asyncHandler(async (req, res) => {
   };
   existingUser.gov_id = idImage.path;
   existingUser.profilePic = selfieImage.path;
-  // existingUser.isAuthencated = true;
+   existingUser.isAuthencated = true;
 
   const savePromise = existingUser.save();
 const mailPromise = VerificationReport(req.user.email, req.user.name);
@@ -238,7 +254,7 @@ console.log(req.user._id)
 
   const userReports = await Report.find({ reported_by: userId })
     .select('reported_by _id description address status urgency createdAt')
-    .populate({ path: 'reported_by', select: 'fullname' });
+    .populate({ path: 'reported_by', select: 'fullname' }).limit(12);
 
   if (userReports.length === 0) {
     throw new ApiError(404, 'You have no reports to view');
@@ -250,14 +266,26 @@ console.log(req.user._id)
 });
 
 
-const GetNotifications=asyncHandler(async(req,res)=>{
-const user=req.user._id;
-if(!user)throw new ApiError(401,'please fill the cookies also')
-const notification=await Notification.findOne({user_id:req.user._id}).select('notifications _id');
-if(!notification)throw new ApiError(404,'the user has no notifications')
-return res.send(new ApiResponse(200,'fetched the notifications',notification))
-}
-)
+
+
+const GetNotifications = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, 'Please provide valid cookies');
+
+  const notificationDoc = await Notification.findOne({ user_id: userId });
+
+  if (!notificationDoc || !notificationDoc.notifications?.length) {
+    return res.send(new ApiResponse(200, 'No notifications', []));
+  }
+
+  // Sort notifications by time descending and pick latest 5
+  const latestNotifications = notificationDoc.notifications
+    .sort((a, b) => b.time - a.time)
+    .slice(0, 5);
+
+  return res.send(new ApiResponse(200, 'Fetched latest notifications', latestNotifications));
+});
+
 
 const SetNotificationsRead=asyncHandler(async(req,res)=>{
   const {mainId,subId}=req.body;
@@ -273,8 +301,8 @@ const SetNotificationsRead=asyncHandler(async(req,res)=>{
   // });
 const updateNotification = await Notification.findOneAndUpdate(
   {
-    user_id: req.user._id,
-    "notifications._id": subId
+   user_id: req.user._id,
+  "notifications._id": subId
   },
   {
     $set: { "notifications.$.isReaded": true }
@@ -286,33 +314,30 @@ if(updateNotification){
     message: 'Notification marked as read',
     notification: updateNotification
   });
+}else{
+  return res.send("error"
+  )
 }
+
 });
 
+
 const markAllAsRead = asyncHandler(async (req, res) => {
-  const { notiId } = req.params; 
-
-  if (!notiId) throw new ApiError(400, 'Please provide the notiId');
-
   const updateNotification = await Notification.findOneAndUpdate(
-    { _id: notiId },
-    {
-      $set: { 'notifications.$[].isReaded': true }, 
-    },
-    { new: true }
+    { user_id: req.user._id },                         // find doc by user_id
+    { $set: { "notifications.$[].isReaded": true } },  // set all isReaded = true
+    { new: true }                                      // return updated doc
   );
 
   if (!updateNotification) {
-    throw new ApiError(404, 'Notification not found');
+    throw new ApiError(404, "Notification not found");
   }
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
-    message: 'All notifications marked as read',
-    data: updateNotification,
+    message: "All notifications marked as read",
   });
 });
-
 
 export{
     RegisterUser,

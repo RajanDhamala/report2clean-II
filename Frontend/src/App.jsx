@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Suspense, useEffect } from 'react';
-import { LazyHomePage, LazyLoginPage, LazyReportPage, LazyReportSectionPage, LazyRegisterPage, LazyProfilePage,LazyDashboard} from './LazyLoadinng/LazyLoading';
+import { LazyHomePage, LazyLoginPage, LazyReportPage, LazyReportSectionPage, LazyRegisterPage, LazyProfilePage,LazyDashboard,} from './LazyLoadinng/LazyLoading';
 import Navbar from './Componnets/Navbar';
 import { Toaster, toast } from "react-hot-toast"; 
 import { Recycle } from 'lucide-react';
@@ -12,6 +12,7 @@ import Cookies from "js-cookie";
 import userStore from './Zustand/UserStore';
 import Dashboard from './Pages/Dashboard';
 import ViewReport from './Componnets/ViewReport';
+import ProtectedRoute from './Pages/ProtectRoute';
 
 
 const queryClient = new QueryClient({
@@ -28,19 +29,18 @@ function App() {
   const SetcurrentUser = userStore((state) => state.SetcurrentUser); 
 
  useEffect(() => {
-  const rawCookie = Cookies.get("currentUser");
-  if (rawCookie) {
-    try {
-      const clean = decodeURIComponent(rawCookie).replace(/^j:/, "");
-      const userData = JSON.parse(clean);
-      console.log("Parsed cookie user:", userData);
-      SetcurrentUser(userData);
-    } catch (err) {
-      console.error("Cookie parse failed:", err);
-      toast.error("Invalid login session.");
-    }
+  
+const rawCookie = Cookies.get("currentUser");
+let initialUser = null;
+
+if (rawCookie) {
+  try {
+    initialUser = JSON.parse(rawCookie);
+  } catch (err) {
+    console.error("Failed to parse cookie:", err);
   }
-}, []);
+}
+}, [SetcurrentUser]);
 
 
   const Loader = () => (
@@ -89,19 +89,23 @@ function App() {
           />
 
           <Suspense fallback={<Loader />}>
-            <Routes>
-              <Route path="/" element={<LazyHomePage />} />
-              <Route path="/login" element={<LazyLoginPage />} />
-              <Route path="/report" element={<LazyReportPage />} />
-              <Route path="/reports" element={<LazyReportSectionPage />} />
-              <Route path="/register" element={<LazyRegisterPage />} />
-              <Route path="/profile" element={<LazyDashboard/>} />
-              <Route path="/location" element={<LocationPicker />} />
-              <Route path="/map" element={<NearbyReportsMap />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/view-report/:reportId" element={<ViewReport/>} />
-            </Routes>
-          </Suspense>
+             <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<LazyHomePage />} />
+      <Route path="/login" element={<LazyLoginPage />} />
+      <Route path="/report" element={<LazyReportPage />} />
+      <Route path="/reports" element={<LazyReportSectionPage />} />
+      <Route path="/register" element={<LazyRegisterPage />} />
+      <Route path="/profile" element={<LazyDashboard />} />
+      <Route path="/location" element={<LocationPicker />} />
+      <Route path="/view-report/:reportId" element={<ViewReport />} />
+
+      {/* Protected routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/map" element={<NearbyReportsMap />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
+    </Routes>          </Suspense>
         </BrowserRouter>
       </QueryClientProvider>
     </>

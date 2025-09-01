@@ -240,7 +240,7 @@ export default function ReportPage() {
 
   const { mutate, isPending, isSuccess } = useMutation({
     mutationFn: async (formData) => {
-      const res = await axios.post("http://localhost:8000/report/createReport", formData, {
+      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/report/createReport`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       })

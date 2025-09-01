@@ -6,7 +6,7 @@ const UserconfigSchema=mongoose.Schema({
         ref:'User'
     },emailNotification:{
         type:Boolean,
-        default:false
+        default:true
     },nearbyAlerts:{
         type:Boolean,
         default :true

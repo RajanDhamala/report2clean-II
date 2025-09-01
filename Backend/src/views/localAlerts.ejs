@@ -1,0 +1,153 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body class="p-6 bg-gray-100">
+  <h1 class="text-2xl font-bold mb-4">Nearby Reports</h1>
+
+  <!-- Filters Form -->
+  <form method="GET" class="mb-6 flex flex-wrap gap-4 items-center">
+    <label>Status:
+      <select name="status" class="border px-2 py-1 rounded">
+        <option value="">All</option>
+        <option value="pending" <%= selectedStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+        <option value="onProgress" <%= selectedStatus === 'onProgress' ? 'selected' : '' %>>In Progress</option>
+        <option value="completed" <%= selectedStatus === 'completed' ? 'selected' : '' %>>Completed</option>
+        <option value="rejected" <%= selectedStatus === 'rejected' ? 'selected' : '' %>>Rejected</option>
+      </select>
+    </label>
+
+    <label>Date:
+      <select name="dateRange" class="border px-2 py-1 rounded">
+        <option value="">All Time</option>
+        <option value="today" <%= selectedDate === 'today' ? 'selected' : '' %>>Today</option>
+        <option value="3days" <%= selectedDate === '3days' ? 'selected' : '' %>>Last 3 Days</option>
+        <option value="week" <%= selectedDate === 'week' ? 'selected' : '' %>>Last Week</option>
+        <option value="month" <%= selectedDate === 'month' ? 'selected' : '' %>>Last Month</option>
+      </select>
+    </label>
+
+    <span class="font-semibold">Radius: <span id="radiusValue"><%= radiusKm.toFixed(1) %></span> km</span>
+    <input type="range" id="radiusSlider" name="radiusKm" min="0.5" max="10" step="0.1" value="<%= radiusKm %>" class="w-64">
+
+    <input type="hidden" name="lat" id="latInput" value="<%= center.lat || 26.4663 %>">
+    <input type="hidden" name="long" id="longInput" value="<%= center.long || 87.2837 %>">
+    <input type="hidden" name="mapLat" id="mapLatInput" value="<%= mapLat || center.lat || 26.4663 %>">
+    <input type="hidden" name="mapLong" id="mapLongInput" value="<%= mapLong || center.long || 87.2837 %>">
+    <input type="hidden" name="mapZoom" id="mapZoomInput" value="<%= mapZoom || 13 %>">
+
+    <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Filter</button>
+  </form>
+
+  <div id="map" class="h-96 mb-6 rounded-lg shadow"></div>
+
+  <script>
+    // Initialize map centered on user's location or saved center
+    let centerLat = Number(<%= center.lat || 26.4663 %>);
+    let centerLong = Number(<%= center.long || 87.2837 %>);
+    let radiusKm = Number(<%= radiusKm || 2 %>);
+    let mapLat = Number(<%= mapLat || center.lat || 26.4663 %>);
+    let mapLong = Number(<%= mapLong || center.long || 87.2837 %>);
+    let mapZoom = Number(<%= mapZoom || 13 %>);
+
+    const map = L.map('map').setView([mapLat, mapLong], mapZoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    const latInput = document.getElementById('latInput');
+    const longInput = document.getElementById('longInput');
+    const mapLatInput = document.getElementById('mapLatInput');
+    const mapLongInput = document.getElementById('mapLongInput');
+    const mapZoomInput = document.getElementById('mapZoomInput');
+
+    map.on('moveend', () => {
+      const center = map.getCenter();
+      mapLatInput.value = center.lat;
+      mapLongInput.value = center.lng;
+    });
+    map.on('zoomend', () => {
+      mapZoomInput.value = map.getZoom();
+    });
+
+    // Custom icon for draggable user / center
+    const userIcon = new L.Icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [30, 50],
+      iconAnchor: [15, 50],
+      popupAnchor: [0, -45]
+    });
+
+    // Draggable user / center marker
+    const centerMarker = L.marker([centerLat, centerLong], { 
+      draggable: true, 
+      title: "Drag to move center",
+      icon: userIcon
+    }).addTo(map);
+
+    centerMarker.bindTooltip("You / Center", { permanent: true, direction: 'top', offset: [0, -15] });
+
+    const radiusCircle = L.circle([centerLat, centerLong], { radius: radiusKm*1000, color:"blue", fillOpacity:0.1 }).addTo(map);
+
+    centerMarker.on('drag', (e) => {
+      const pos = e.target.getLatLng();
+      centerLat = pos.lat;
+      centerLong = pos.lng;
+      latInput.value = centerLat;
+      longInput.value = centerLong;
+      radiusCircle.setLatLng([centerLat, centerLong]);
+    });
+
+    const slider = document.getElementById('radiusSlider');
+    const radiusDisplay = document.getElementById('radiusValue');
+    slider.addEventListener('input', () => {
+      radiusKm = parseFloat(slider.value);
+      radiusDisplay.textContent = radiusKm.toFixed(1);
+      radiusCircle.setRadius(radiusKm*1000);
+    });
+
+    // Predefined colored markers for reports
+    const iconUrls = {
+      pending: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+      onProgress: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+      completed: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+      rejected: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+    };
+
+    function createIcon(status) {
+      return new L.Icon({
+        iconUrl: iconUrls[status] || iconUrls.pending,
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+      });
+    }
+
+    // Add report markers with popups including "See More"
+    <% reports.forEach(r => { %>
+    {
+      const reportMarker = L.marker([<%= r.location.coordinates[1] %>, <%= r.location.coordinates[0] %>], {
+        icon: createIcon('<%= r.status %>')
+      }).addTo(map);
+
+      reportMarker.bindPopup(`
+        <b><%= r.reported_by?.fullname || "Anonymous" %></b><br>
+        <%= r.description %><br>
+        Status: <%= r.status %><br>
+        Date: <%= r.createdAt.toDateString() %><br>
+        <a href="/admin/report/<%= r._id %>" target="_blank" class="text-blue-600 underline">See More</a>
+      `);
+    }
+    <% }) %>
+  </script>
+</body>
+</html>
+
