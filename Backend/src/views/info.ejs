@@ -291,7 +291,7 @@
         }
 
         // Send PATCH request to server
-        fetch(`/admin/status/<%= report._id %>`, {
+        fetch(`https://report2clean-ii-3.onrender.com/admin/status/<%= report._id %>`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -313,7 +313,7 @@
 
         function deleteReport() {
             if (confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
-                fetch(`/admin/report/<%= report._id %>`, {
+                fetch(`https://report2clean-ii-3.onrender.com/admin/report/<%= report._id %>`, {
                     method: 'DELETE',
                 })
                 .then(response => response.json())
