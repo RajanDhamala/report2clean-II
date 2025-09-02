@@ -192,20 +192,49 @@ const ReadAll = async () => {
                           : "bg-white text-gray-700"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-0.5 text-xl">{getTypeIcon(notification.type)}</div>
+                                        <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-0.5 text-xl">
+                          {getTypeIcon(notification.type)}
+                        </div>
+
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm leading-relaxed ${notification.isReaded ? "text-gray-600" : "text-gray-900 font-medium"}`}>
+                          <p
+                            className={`text-sm leading-relaxed ${
+                              notification.isReaded
+                                ? "text-gray-600"
+                                : "text-gray-900 font-medium"
+                            }`}
+                          >
                             {notification.message}
                           </p>
+
                           <div className="flex items-center justify-between mt-2">
-                            <span className={`text-xs ${!notification.isReaded ? "text-blue-700" : "text-gray-400"}`}>
+                            <span
+                              className={`text-xs ${
+                                !notification.isReaded ? "text-blue-700" : "text-gray-400"
+                              }`}
+                            >
                               {new Date(notification.time).toLocaleString()}
                             </span>
-                            {!notification.isReaded && <div className="w-2 h-2 bg-blue-600 rounded-full" />}
+
+                            <span className="flex-shrink-0 ml-3">
+                              <a
+                                href={`http://localhost:5173${notification.link}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-xs underline"
+                              >
+                                See more
+                              </a>
+                            </span>
+
+                            {!notification.isReaded && (
+                              <div className="w-2 h-2 bg-blue-600 rounded-full ml-2" />
+                            )}
                           </div>
                         </div>
                       </div>
+
                     </button>
                   ))}
                 </div>

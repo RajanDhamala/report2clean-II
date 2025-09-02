@@ -1,17 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Important for mobile scaling -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-  <div class="bg-white shadow-md rounded-lg p-8 w-full max-w-sm">
-    <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen px-4">
+  <div class="bg-white shadow-md rounded-lg p-6 sm:p-8 w-full max-w-sm">
+    <h1 class="text-xl sm:text-2xl font-bold mb-6 text-center">Admin Login</h1>
 
     <% if (error) { %>
-      <div class="bg-red-100 text-red-800 px-4 py-2 rounded mb-4">
+      <div class="bg-red-100 text-red-800 px-3 py-2 sm:px-4 sm:py-2 rounded mb-4 text-sm sm:text-base">
         <%= error %>
       </div>
     <% } %>
@@ -19,20 +19,20 @@
     <form id="loginForm" class="space-y-4">
       <!-- Username -->
       <div>
-        <label for="username" class="block font-medium mb-1">Username</label>
+        <label for="username" class="block font-medium mb-1 text-sm sm:text-base">Username</label>
         <input type="text" id="username" name="username" placeholder="Enter username" 
-               class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+               class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
       </div>
 
       <!-- Password -->
       <div>
-        <label for="password" class="block font-medium mb-1">Password</label>
+        <label for="password" class="block font-medium mb-1 text-sm sm:text-base">Password</label>
         <input type="password" id="password" name="password" placeholder="Enter password" 
-               class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+               class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
       </div>
 
       <!-- Submit -->
-      <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+      <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 text-sm sm:text-base">
         Login
       </button>
     </form>
@@ -52,14 +52,14 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password }),
-          credentials: 'include' // Important: send cookies
+          credentials: 'include'
         });
 
         const data = await res.json();
 
         if (data.status === 200) {
           alert('Login successful!');
-          window.location.href = 'https://report2clean-ii-3.onrender.com/admin'; // redirect after login
+          window.location.href = 'https://report2clean-ii-3.onrender.com/admin';
         } else {
           alert(data.message || 'Login failed');
         }

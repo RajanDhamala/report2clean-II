@@ -66,7 +66,7 @@ const CreateReport = asyncHandler(async (req, res) => {
            //   reporterName: user.fullname,
             //  reportDescription: newReport.description,
            //   reportAddress: newReport.address,
-            //  reportLink: `/report/${newReport._id}`,
+            //  reportLink: `/view-report/${newReport._id}`,
            // });
           }
 
@@ -75,7 +75,7 @@ const CreateReport = asyncHandler(async (req, res) => {
             const notificationMessage = {
               message: `Report Near your Area: ${newReport.description}`,
               type: "event",
-              link: `/report/${newReport._id}`,
+              link: `/view-report/${newReport._id}`,
               time: new Date(),
             };
 
