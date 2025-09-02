@@ -219,7 +219,7 @@ const ReadAll = async () => {
 
                             <span className="flex-shrink-0 ml-3">
                               <a
-                                href={`http://localhost:5173${notification.link}`}
+                                href={`${import.meta.env.VITE_BASE_URL}${notification.link}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline text-xs underline"
