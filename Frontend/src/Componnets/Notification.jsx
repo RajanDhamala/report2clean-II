@@ -3,6 +3,7 @@ import { Bell, CheckCheck, X, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 export default function NotificationPanel() {
   const queryClient = useQueryClient();
@@ -217,16 +218,16 @@ const ReadAll = async () => {
                               {new Date(notification.time).toLocaleString()}
                             </span>
 
-                            <span className="flex-shrink-0 ml-3">
-                              <a
-                                href={`${import.meta.env.VITE_BASE_URL}${notification.link}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline text-xs underline"
-                              >
-                                See more
-                              </a>
-                            </span>
+                         <span className="flex-shrink-0 ml-3">
+                          <Link
+                            to={notification.link}
+                            onClick={() => setIsOpen(false)} // 👈 closes dropdown when clicked
+                            className="text-blue-600 hover:underline text-xs underline ml-3 flex-shrink-0"
+                          >
+                            See more
+                          </Link>
+                        </span>
+                          
 
                             {!notification.isReaded && (
                               <div className="w-2 h-2 bg-blue-600 rounded-full ml-2" />

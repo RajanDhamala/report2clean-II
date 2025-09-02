@@ -1,22 +1,31 @@
-
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
   <title><%= title %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Important for mobile -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    /* Ensure map container resizes on mobile */
+    #map {
+      width: 100%;
+      min-height: 24rem; /* ~96 Tailwind = 384px */
+    }
+    @media (min-width: 640px) {
+      #map {
+        min-height: 28rem; /* ~112 Tailwind = 448px */
+      }
+    }
+  </style>
 </head>
-<body class="p-6 bg-gray-100">
-  <h1 class="text-2xl font-bold mb-4">Nearby Reports</h1>
+<body class="p-4 sm:p-6 bg-gray-100">
+  <h1 class="text-2xl sm:text-3xl font-bold mb-4 text-center sm:text-left">Nearby Reports</h1>
 
   <!-- Filters Form -->
-  <form method="GET" class="mb-6 flex flex-wrap gap-4 items-center">
-    <label>Status:
-      <select name="status" class="border px-2 py-1 rounded">
+  <form method="GET" class="mb-4 flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-3">
+    <label class="text-sm sm:text-base">Status:
+      <select name="status" class="border px-2 py-1 rounded text-sm sm:text-base">
         <option value="">All</option>
         <option value="pending" <%= selectedStatus === 'pending' ? 'selected' : '' %>>Pending</option>
         <option value="onProgress" <%= selectedStatus === 'onProgress' ? 'selected' : '' %>>In Progress</option>
@@ -25,8 +34,8 @@
       </select>
     </label>
 
-    <label>Date:
-      <select name="dateRange" class="border px-2 py-1 rounded">
+    <label class="text-sm sm:text-base">Date:
+      <select name="dateRange" class="border px-2 py-1 rounded text-sm sm:text-base">
         <option value="">All Time</option>
         <option value="today" <%= selectedDate === 'today' ? 'selected' : '' %>>Today</option>
         <option value="3days" <%= selectedDate === '3days' ? 'selected' : '' %>>Last 3 Days</option>
@@ -35,8 +44,8 @@
       </select>
     </label>
 
-    <span class="font-semibold">Radius: <span id="radiusValue"><%= radiusKm.toFixed(1) %></span> km</span>
-    <input type="range" id="radiusSlider" name="radiusKm" min="0.5" max="10" step="0.1" value="<%= radiusKm %>" class="w-64">
+    <span class="text-sm sm:text-base font-semibold">Radius: <span id="radiusValue"><%= radiusKm.toFixed(1) %></span> km</span>
+    <input type="range" id="radiusSlider" name="radiusKm" min="0.5" max="10" step="0.1" value="<%= radiusKm %>" class="w-full sm:w-64">
 
     <input type="hidden" name="lat" id="latInput" value="<%= center.lat || 26.4663 %>">
     <input type="hidden" name="long" id="longInput" value="<%= center.long || 87.2837 %>">
@@ -44,13 +53,13 @@
     <input type="hidden" name="mapLong" id="mapLongInput" value="<%= mapLong || center.long || 87.2837 %>">
     <input type="hidden" name="mapZoom" id="mapZoomInput" value="<%= mapZoom || 13 %>">
 
-    <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Filter</button>
+    <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm sm:text-base">Filter</button>
   </form>
 
-  <div id="map" class="h-96 mb-6 rounded-lg shadow"></div>
+  <!-- Map -->
+  <div id="map" class="rounded-lg shadow mb-6"></div>
 
   <script>
-    // Initialize map centered on user's location or saved center
     let centerLat = Number(<%= center.lat || 26.4663 %>);
     let centerLong = Number(<%= center.long || 87.2837 %>);
     let radiusKm = Number(<%= radiusKm || 2 %>);
@@ -76,7 +85,6 @@
       mapZoomInput.value = map.getZoom();
     });
 
-    // Custom icon for draggable user / center
     const userIcon = new L.Icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -85,7 +93,6 @@
       popupAnchor: [0, -45]
     });
 
-    // Draggable user / center marker
     const centerMarker = L.marker([centerLat, centerLong], { 
       draggable: true, 
       title: "Drag to move center",
@@ -113,7 +120,6 @@
       radiusCircle.setRadius(radiusKm*1000);
     });
 
-    // Predefined colored markers for reports
     const iconUrls = {
       pending: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
       onProgress: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
@@ -131,7 +137,6 @@
       });
     }
 
-    // Add report markers with popups including "See More"
     <% reports.forEach(r => { %>
     {
       const reportMarker = L.marker([<%= r.location.coordinates[1] %>, <%= r.location.coordinates[0] %>], {
@@ -150,4 +155,3 @@
   </script>
 </body>
 </html>
-
