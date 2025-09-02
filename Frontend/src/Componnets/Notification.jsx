@@ -136,7 +136,9 @@ const ReadAll = async () => {
           />
 
           {/* Panel */}
-          <div className="absolute right-0 top-12 w-96 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white border border-gray-200 
+             rounded-xl shadow-xl z-50 overflow-hidden 
+             max-h-[70vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-3">
